@@ -1,6 +1,6 @@
 import torch 
 from torch.nn.functional import upsample_bilinear as upsample
-from torch.nn.functional import sigmoid
+from torch import sigmoid
 
 def weights_init(m):
     classname = m.__class__.__name__

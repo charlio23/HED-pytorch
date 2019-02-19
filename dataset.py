@@ -7,6 +7,8 @@ from PIL import Image
 import numpy as np
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
+from torch.autograd import Variable
+
 
 class BSDS(Dataset):
     def __init__(self, rootDirImg, rootDirGt, processed=True):
@@ -26,7 +28,7 @@ class BSDS(Dataset):
         transf = transforms.ToTensor()
         inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
 
-        targetImage = transf(Image.open(self.rootDirImg + inputName).convert('L'))
+        targetImage = transf(Image.open(self.rootDirGt + targetName).convert('L'))
         return inputImage, targetImage
 
     def preprocess(self):
