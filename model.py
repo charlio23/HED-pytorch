@@ -2,6 +2,26 @@ import torch
 from torch.nn.functional import upsample_bilinear as upsample
 from torch.nn.functional import sigmoid
 
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv2d') != -1:
+        torch.nn.init.xavier_uniform_(m.weight.data)
+        torch.nn.init.constant_(m.bias.data, 0.1)
+    elif classname.find('BatchNorm') != -1:
+        m.weight.data.normal_(1.0, 0.02)
+        m.bias.data.fill_(0)
+
+def initialize_hed(path):
+    net = HED()
+    vgg16_items = list(torch.load(path).items())
+    net.apply(weights_init)
+    j = 0
+    for k, v in net.state_dict().items():
+        if k.find("Vgg") != -1:
+            net.state_dict()[k].copy_(vgg16_items[j][1])
+            j += 1
+    return net
+
 class HED(torch.nn.Module):
     def __init__(self):
         super(HED, self).__init__()
