@@ -10,6 +10,7 @@ from PIL import Image
 from torch import sigmoid
 from torch.nn.functional import binary_cross_entropy
 from torch.autograd import Variable
+import time
 
 def grayTrans(img):
     img = img.data.cpu().numpy()[0][0]*255
@@ -97,7 +98,7 @@ print("Training started")
 
 epochs = int(np.ceil(trainingIterations/(len(train) + len(val))))
 i = 0
-dispInterval = 1000
+dispInterval = 100
 lossAcc = 0.0
 
 for epoch in range(epochs):

@@ -1,15 +1,14 @@
 import torch 
-from torch.nn.functional import upsample_bilinear as upsample
+from torch.nn.functional import interpolate
 from torch import sigmoid
 
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv2d') != -1:
-        torch.nn.init.xavier_uniform_(m.weight.data)
-        torch.nn.init.constant_(m.bias.data, 0.1)
-    elif classname.find('BatchNorm') != -1:
-        m.weight.data.normal_(1.0, 0.02)
-        m.bias.data.fill_(0)
+        if m.in_channels == 5:
+            torch.nn.init.constant_(m.weight.data,1/5)
+        else:
+            torch.nn.init.xavier_uniform_(m.weight.data)
 
 def initialize_hed(path):
     net = HED()
@@ -17,7 +16,7 @@ def initialize_hed(path):
     net.apply(weights_init)
     j = 0
     for k, v in net.state_dict().items():
-        if k.find("Vgg") != -1:
+        if k.find("conv") != -1:
             net.state_dict()[k].copy_(vgg16_items[j][1])
             j += 1
     return net
@@ -114,10 +113,10 @@ class HED(torch.nn.Module):
         width = image.size(3)
 
         sideOut1 = self.sideOut1(conv1)
-        sideOut2 = upsample(self.sideOut2(conv2), size=(height,width))
-        sideOut3 = upsample(self.sideOut3(conv3), size=(height,width))
-        sideOut4 = upsample(self.sideOut4(conv4), size=(height,width))
-        sideOut5 = upsample(self.sideOut5(conv5), size=(height,width))
+        sideOut2 = interpolate(self.sideOut2(conv2), size=(height,width), mode='bilinear')
+        sideOut3 = interpolate(self.sideOut3(conv3), size=(height,width), mode='bilinear')
+        sideOut4 = interpolate(self.sideOut4(conv4), size=(height,width), mode='bilinear')
+        sideOut5 = interpolate(self.sideOut5(conv5), size=(height,width), mode='bilinear')
 
         fuse = self.fuse(torch.cat((sideOut1, sideOut2, sideOut3, sideOut4, sideOut5), 1))
 
