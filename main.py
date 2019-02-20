@@ -11,6 +11,7 @@ from torch import sigmoid
 from torch.nn.functional import binary_cross_entropy
 from torch.autograd import Variable
 import time
+from itertools import chain
 
 def grayTrans(img):
     img = img.data.cpu().numpy()[0][0]*255.0
@@ -98,7 +99,8 @@ epoch_line = []
 loss_line = []
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
-    for j, data in enumerate(train, 0):
+    for data in chain(train, val):
+        
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         optimizer.zero_grad()
@@ -109,7 +111,6 @@ for epoch in range(epochs):
         loss4 = bce2d(side4, target)
         loss5 = bce2d(side5, target)
         loss6 = binary_cross_entropy(fuse, target)
-        avg = (side1 + side2 + side3 + side4 + side5 + fuse)/6
         loss = loss1 + loss2 + loss3 + loss4 + loss5 + loss6
         loss.backward()
         optimizer.step()

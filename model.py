@@ -8,7 +8,9 @@ def weights_init(m):
         if m.in_channels == 5:
             torch.nn.init.constant_(m.weight.data,1/5)
         else:
-            torch.nn.init.xavier_uniform_(m.weight.data)
+            torch.nn.init.constant_(m.weight.data,0)
+        if m.bias is not None:
+            torch.nn.init.constant_(m.bias.data,0)
 
 def initialize_hed(path):
     net = HED()
