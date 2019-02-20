@@ -1,4 +1,4 @@
-from dataset import BSDS
+from dataset import BSDS, TrainDataset
 from model import initialize_hed
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
@@ -35,16 +35,17 @@ rootDirImgTest = "BSDS500/data/images/test/"
 rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
+#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+#testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()
 #testDS.preprocess()
 
-print("Initializating network...")
+print("Initializing network...")
 
 modelPath = "model/vgg16.pth"
 
@@ -52,8 +53,8 @@ nnet = initialize_hed(modelPath)
 nnet.cuda()
 
 train = DataLoader(trainDS, shuffle=True)
-val = DataLoader(valDS, shuffle=True)
-test = DataLoader(testDS, shuffle=False)
+#val = DataLoader(valDS, shuffle=True)
+#test = DataLoader(testDS, shuffle=False)
 
 print("Defining hyperparameters...")
 
@@ -65,7 +66,6 @@ lossWeight = 1
 initializationNestedFilters = 0
 initializationFusionWeights = 1/5
 weightDecay = 0.0002
-trainingIterations = 10000
 ###
 
 def bce2d(input, target):    
@@ -91,16 +91,15 @@ optimizer = optim.SGD(nnet.parameters(), lr=learningRate, momentum=momentum, wei
 
 print("Training started")
 
-epochs = int(np.ceil(trainingIterations/(len(train) + len(val))))
+epochs = 15
 i = 0
-dispInterval = 100
+dispInterval = 1000
 lossAcc = 0.0
 epoch_line = []
 loss_line = []
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
-    for data in chain(train, val):
-        
+    for j, data in enumerate(train, 0):
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         optimizer.zero_grad()
@@ -119,7 +118,7 @@ for epoch in range(epochs):
         if (i+1) % dispInterval == 0:
                     timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                     lossDisp = lossAcc/dispInterval
-                    epoch_line.append(i)
+                    epoch_line.append(epoch + j/len(train))
                     loss_line.append(lossDisp)
                     print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i+1, lossDisp))
                     lossAcc = 0.0

@@ -8,7 +8,7 @@ import numpy as np
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
 from torch.autograd import Variable
-
+import pandas as pd
 
 class BSDS(Dataset):
     def __init__(self, rootDirImg, rootDirGt, processed=True):
@@ -54,3 +54,35 @@ class BSDS(Dataset):
         # update dataset
         self.listData = [sorted(os.listdir(self.rootDirImg)),sorted(os.listdir(self.rootDirGt))]
         self.processed = True
+
+def grayTrans(img):
+    img = img.data.cpu().numpy()[0]*255.0
+    img = (img).astype(np.uint8)
+    img = Image.fromarray(img, 'L')
+    return img
+
+class TrainDataset(Dataset):
+    def __init__(self, fileNames, rootDir):        
+        self.rootDir = rootDir
+        self.transform = transforms.ToTensor()
+        self.targetTransform = transforms.ToTensor()
+        self.frame = pd.read_csv(fileNames, dtype=str, delimiter=' ')
+
+    def __len__(self):
+        return len(self.frame)
+
+    def __getitem__(self, idx):
+        # input and target images
+        inputName = os.path.join(self.rootDir, self.frame.iloc[idx, 0])
+        targetName = os.path.join(self.rootDir, self.frame.iloc[idx, 1])
+
+        # process the images
+        inputImage = Image.open(inputName).convert('RGB')
+        if self.transform is not None:
+            inputImage = self.transform(inputImage)
+
+        targetImage = Image.open(targetName).convert('L')
+        if self.targetTransform is not None:
+            targetImage = self.targetTransform(targetImage)
+            targetImage = (targetImage>0.41).float()
+        return inputImage, targetImage
