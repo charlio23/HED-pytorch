@@ -13,9 +13,8 @@ from torch.autograd import Variable
 import time
 
 def grayTrans(img):
-    img = img.data.cpu().numpy()[0][0]
-    appl = np.vectorize(lambda x: 255.0 if x >= 0.5 else 0)
-    img = (appl(img)).astype(np.uint8)
+    img = img.data.cpu().numpy()[0][0]*255.0
+    img = (img).astype(np.uint8)
     img = Image.fromarray(img, 'L')
     return img
 
@@ -95,10 +94,11 @@ epochs = int(np.ceil(trainingIterations/(len(train) + len(val))))
 i = 0
 dispInterval = 100
 lossAcc = 0.0
-
+epoch_line = []
+loss_line = []
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
-    for j, data in enumerate(train, 0):
+    for j, data in enumerate(zip(train, val), 0):
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         optimizer.zero_grad()
@@ -117,7 +117,10 @@ for epoch in range(epochs):
         
         if (i+1) % dispInterval == 0:
                     timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-                    print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i+1, lossAcc/dispInterval))
+                    lossDisp = lossAcc/dispInterval
+                    epoch_line.append(i)
+                    loss_line.append(lossDisp)
+                    print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i+1, lossDisp))
                     lossAcc = 0.0
         i += 1
     # transform to grayscale images
@@ -127,6 +130,7 @@ for epoch in range(epochs):
     side4 = grayTrans(side4)
     side5 = grayTrans(side5)
     fuse = grayTrans(fuse)
+    avg = grayTrans((side1 + side2 + side3 + side4 + side5 + fuse)/6)
     tar = grayTrans(target)
     
     side1.save('images/sample_1.png')
@@ -135,5 +139,11 @@ for epoch in range(epochs):
     side4.save('images/sample_4.png')
     side5.save('images/sample_5.png')
     fuse.save('images/sample_6.png')
+    avg.save('images/sample_7.png')
     tar.save('images/sample_T.png')
     torch.save(nnet.state_dict(), 'HED.pth')
+
+plt.plot(epoch_line,loss_line)
+plt.xlabel("Iteration")
+plt.ylabel("Loss")
+plt.savefig("images/loss.png")
