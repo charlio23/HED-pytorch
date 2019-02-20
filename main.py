@@ -109,7 +109,7 @@ for epoch in range(epochs):
         loss4 = bce2d(side4, target)
         loss5 = bce2d(side5, target)
         loss6 = binary_cross_entropy(fuse, target)
-
+        avg = (side1 + side2 + side3 + side4 + side5 + fuse)/6
         loss = loss1 + loss2 + loss3 + loss4 + loss5 + loss6
         loss.backward()
         optimizer.step()
@@ -124,13 +124,14 @@ for epoch in range(epochs):
                     lossAcc = 0.0
         i += 1
     # transform to grayscale images
+    avg = (side1 + side2 + side3 + side4 + side5 + fuse)/6
     side1 = grayTrans(side1)
     side2 = grayTrans(side2)
     side3 = grayTrans(side3)
     side4 = grayTrans(side4)
     side5 = grayTrans(side5)
     fuse = grayTrans(fuse)
-    avg = grayTrans((side1 + side2 + side3 + side4 + side5 + fuse)/6)
+    avg = grayTrans(avg)
     tar = grayTrans(target)
     
     side1.save('images/sample_1.png')
