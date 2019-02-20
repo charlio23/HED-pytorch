@@ -98,7 +98,7 @@ epoch_line = []
 loss_line = []
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
-    for j, data in enumerate(zip(train, val), 0):
+    for j, data in enumerate(train, 0):
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         optimizer.zero_grad()
