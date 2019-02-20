@@ -113,10 +113,10 @@ class HED(torch.nn.Module):
         width = image.size(3)
 
         sideOut1 = self.sideOut1(conv1)
-        sideOut2 = interpolate(self.sideOut2(conv2), size=(height,width), mode='bilinear')
-        sideOut3 = interpolate(self.sideOut3(conv3), size=(height,width), mode='bilinear')
-        sideOut4 = interpolate(self.sideOut4(conv4), size=(height,width), mode='bilinear')
-        sideOut5 = interpolate(self.sideOut5(conv5), size=(height,width), mode='bilinear')
+        sideOut2 = interpolate(self.sideOut2(conv2), size=(height,width), mode='bilinear', align_corners=True)
+        sideOut3 = interpolate(self.sideOut3(conv3), size=(height,width), mode='bilinear', align_corners=True)
+        sideOut4 = interpolate(self.sideOut4(conv4), size=(height,width), mode='bilinear', align_corners=True)
+        sideOut5 = interpolate(self.sideOut5(conv5), size=(height,width), mode='bilinear', align_corners=True)
 
         fuse = self.fuse(torch.cat((sideOut1, sideOut2, sideOut3, sideOut4, sideOut5), 1))
 

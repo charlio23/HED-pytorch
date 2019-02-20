@@ -13,8 +13,9 @@ from torch.autograd import Variable
 import time
 
 def grayTrans(img):
-    img = img.data.cpu().numpy()[0][0]*255
-    img = (img).astype(np.uint8)
+    img = img.data.cpu().numpy()[0][0]
+    appl = np.vectorize(lambda x: 255.0 if x >= 0.5 else 0)
+    img = (appl(img)).astype(np.uint8)
     img = Image.fromarray(img, 'L')
     return img
 
@@ -68,29 +69,23 @@ trainingIterations = 10000
 ###
 
 def bce2d(input, target):    
-
-        log_p = input.transpose(1, 2).transpose(2, 3).contiguous().view(1, -1)
-        target_t = target.transpose(1, 2).transpose(2, 3).contiguous().view(1, -1)
-        target_trans = target_t.clone()
-        pos_index = (target_t >0)
-        neg_index = (target_t ==0)
-        target_trans[pos_index] = 1
-        target_trans[neg_index] = 0
-        pos_index = pos_index.data.cpu().numpy().astype(bool)
-        neg_index = neg_index.data.cpu().numpy().astype(bool)
-        weight = torch.Tensor(log_p.size()).fill_(0)
-        weight = weight.numpy()
-        pos_num = pos_index.sum()
-        neg_num = neg_index.sum()
+        
+        target_trans = target.clone()
+        pos_index = (target >0.5)
+        neg_index = (target <0.5)        
+        weight = torch.Tensor(input.size()).fill_(0)
+        pos_num = pos_index.sum().item()
+        neg_num = neg_index.sum().item()
         sum_num = pos_num + neg_num
         weight[pos_index] = neg_num*1.0 / sum_num
         weight[neg_index] = pos_num*1.0 / sum_num
-
-        weight = torch.from_numpy(weight)
         weight = weight.cuda()
 
-        loss = binary_cross_entropy(log_p, target_t, weight)
+        loss = binary_cross_entropy(input, target, weight)
         return loss
+
+
+
 
 optimizer = optim.SGD(nnet.parameters(), lr=learningRate, momentum=momentum, weight_decay=weightDecay)
 
@@ -113,7 +108,7 @@ for epoch in range(epochs):
         loss3 = bce2d(side3, target)
         loss4 = bce2d(side4, target)
         loss5 = bce2d(side5, target)
-        loss6 = bce2d(fuse, target)
+        loss6 = binary_cross_entropy(fuse, target)
 
         loss = loss1 + loss2 + loss3 + loss4 + loss5 + loss6
         loss.backward()
@@ -126,7 +121,6 @@ for epoch in range(epochs):
                     lossAcc = 0.0
         i += 1
     # transform to grayscale images
-
     side1 = grayTrans(side1)
     side2 = grayTrans(side2)
     side3 = grayTrans(side3)
