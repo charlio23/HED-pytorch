@@ -1,6 +1,6 @@
 from dataset import BSDS, TrainDataset
 from model import initialize_hed
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 import torchvision.transforms as transforms
 import torch
 import matplotlib.pyplot as plt
@@ -12,17 +12,12 @@ from torch.nn.functional import binary_cross_entropy
 from torch.autograd import Variable
 import time
 from itertools import chain
+from tqdm import tqdm
 
 def grayTrans(img):
     img = img.data.cpu().numpy()[0][0]*255.0
     img = (img).astype(np.uint8)
     img = Image.fromarray(img, 'L')
-    return img
-
-def colorTrans(img):
-    img = img.data.cpu().numpy()[0]
-    img = (img).astype(np.uint8)
-    img = Image.fromarray(img, 'RGB')
     return img
 
 print("Importing datasets...")
@@ -35,10 +30,11 @@ rootDirImgTest = "BSDS500/data/images/test/"
 rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-#trainDS = chain(trainDS,valDS)
-trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+trainDS = ConcatDataset([trainDS,valDS])
+
+#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
@@ -54,7 +50,7 @@ nnet = initialize_hed(modelPath)
 nnet.cuda()
 
 train = DataLoader(trainDS, shuffle=True)
-#val = DataLoader(valDS, shuffle=True)
+
 #test = DataLoader(testDS, shuffle=False)
 
 print("Defining hyperparameters...")
@@ -69,21 +65,20 @@ initializationFusionWeights = 1/5
 weightDecay = 0.0002
 ###
 
-def bce2d(input, target):    
-        
-        target_trans = target.clone()
-        pos_index = (target >0.5)
-        neg_index = (target <0.5)        
-        weight = torch.Tensor(input.size()).fill_(0)
-        pos_num = pos_index.sum().item()
-        neg_num = neg_index.sum().item()
-        sum_num = pos_num + neg_num
-        weight[pos_index] = neg_num*1.0 / sum_num
-        weight[neg_index] = pos_num*1.0 / sum_num
-        weight = weight.cuda()
+def balanced_cross_entropy(input, target):            
+    target_trans = target.clone()
+    pos_index = (target >0.5)
+    neg_index = (target <0.5)        
+    weight = torch.Tensor(input.size()).fill_(0)
+    pos_num = pos_index.sum().item()
+    neg_num = neg_index.sum().item()
+    sum_num = pos_num + neg_num
+    weight[pos_index] = neg_num*1.0 / sum_num
+    weight[neg_index] = pos_num*1.0 / sum_num
+    weight = weight.cuda()
 
-        loss = binary_cross_entropy(input, target, weight)
-        return loss
+    loss = binary_cross_entropy(input, target, weight)
+    return loss
 
 
 
@@ -94,22 +89,22 @@ print("Training started")
 
 epochs = 15
 i = 0
-dispInterval = 1000
+dispInterval = 100
 lossAcc = 0.0
 epoch_line = []
 loss_line = []
 optimizer.zero_grad()
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
-    for j, data in enumerate(train, 0):
+    for j, data in enumerate(tqdm(train), 0):
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         side1, side2, side3, side4, side5, fuse = nnet(image)
-        loss1 = bce2d(side1, target)
-        loss2 = bce2d(side2, target)
-        loss3 = bce2d(side3, target)
-        loss4 = bce2d(side4, target)
-        loss5 = bce2d(side5, target)
+        loss1 = balanced_cross_entropy(side1, target)
+        loss2 = balanced_cross_entropy(side2, target)
+        loss3 = balanced_cross_entropy(side3, target)
+        loss4 = balanced_cross_entropy(side4, target)
+        loss5 = balanced_cross_entropy(side5, target)
         loss6 = binary_cross_entropy(fuse, target)
         loss = loss1 + loss2 + loss3 + loss4 + loss5 + loss6
         lossAvg = loss/miniBatchSize
