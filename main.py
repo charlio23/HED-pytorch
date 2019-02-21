@@ -118,16 +118,16 @@ for epoch in range(epochs):
                     lossAcc = 0.0
         i += 1
     # transform to grayscale images
-    avg = (side1 + side2 + side3 + side4 + side5 + fuse)/6
-    side1 = grayTrans(side1)
-    side2 = grayTrans(side2)
-    side3 = grayTrans(side3)
-    side4 = grayTrans(side4)
-    side5 = grayTrans(side5)
-    fuse = grayTrans(fuse)
+    avg = sum(sideOuts)/6
+    side1 = grayTrans(sideOuts[0])
+    side2 = grayTrans(sideOuts[1])
+    side3 = grayTrans(sideOuts[2])
+    side4 = grayTrans(sideOuts[3])
+    side5 = grayTrans(sideOuts[4])
+    fuse = grayTrans(sideOuts[5])
     avg = grayTrans(avg)
     tar = grayTrans(target)
-    
+
     side1.save('images/sample_1.png')
     side2.save('images/sample_2.png')
     side3.save('images/sample_3.png')
