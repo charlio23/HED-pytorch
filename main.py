@@ -36,8 +36,9 @@ rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
 #trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+#trainDS = chain(trainDS,valDS)
+trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
@@ -97,12 +98,12 @@ dispInterval = 1000
 lossAcc = 0.0
 epoch_line = []
 loss_line = []
+optimizer.zero_grad()
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, data in enumerate(train, 0):
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
-        optimizer.zero_grad()
         side1, side2, side3, side4, side5, fuse = nnet(image)
         loss1 = bce2d(side1, target)
         loss2 = bce2d(side2, target)
@@ -111,10 +112,13 @@ for epoch in range(epochs):
         loss5 = bce2d(side5, target)
         loss6 = binary_cross_entropy(fuse, target)
         loss = loss1 + loss2 + loss3 + loss4 + loss5 + loss6
-        loss.backward()
-        optimizer.step()
+        lossAvg = loss/miniBatchSize
+        lossAvg.backward()
         lossAcc += loss.item()
-        
+        if (j+1)% miniBatchSize == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+
         if (i+1) % dispInterval == 0:
                     timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                     lossDisp = lossAcc/dispInterval
@@ -142,9 +146,10 @@ for epoch in range(epochs):
     fuse.save('images/sample_6.png')
     avg.save('images/sample_7.png')
     tar.save('images/sample_T.png')
+
     torch.save(nnet.state_dict(), 'HED.pth')
 
-plt.plot(epoch_line,loss_line)
-plt.xlabel("Iteration")
-plt.ylabel("Loss")
-plt.savefig("images/loss.png")
+    plt.plot(epoch_line,loss_line)
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+    plt.savefig("images/loss.png")
