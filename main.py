@@ -66,7 +66,6 @@ weightDecay = 0.0002
 ###
 
 def balanced_cross_entropy(input, target):            
-    target_trans = target.clone()
     pos_index = (target >0.5)
     neg_index = (target <0.5)        
     weight = torch.Tensor(input.size()).fill_(0)
@@ -87,7 +86,7 @@ optimizer = optim.SGD(nnet.parameters(), lr=learningRate, momentum=momentum, wei
 
 print("Training started")
 
-epochs = 15
+epochs = 40
 i = 0
 dispInterval = 100
 lossAcc = 0.0
@@ -99,14 +98,10 @@ for epoch in range(epochs):
     for j, data in enumerate(tqdm(train), 0):
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
-        side1, side2, side3, side4, side5, fuse = nnet(image)
-        loss1 = balanced_cross_entropy(side1, target)
-        loss2 = balanced_cross_entropy(side2, target)
-        loss3 = balanced_cross_entropy(side3, target)
-        loss4 = balanced_cross_entropy(side4, target)
-        loss5 = balanced_cross_entropy(side5, target)
-        loss6 = binary_cross_entropy(fuse, target)
-        loss = loss1 + loss2 + loss3 + loss4 + loss5 + loss6
+        sideOuts = nnet(image)
+        loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts[:-1]])
+        loss6 = binary_cross_entropy(sideOuts[-1], target)
+        loss += loss6
         lossAvg = loss/miniBatchSize
         lossAvg.backward()
         lossAcc += loss.item()
