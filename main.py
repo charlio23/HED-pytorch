@@ -30,11 +30,11 @@ rootDirImgTest = "BSDS500/data/images/test/"
 rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-trainDS = ConcatDataset([trainDS,valDS])
+#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+#trainDS = ConcatDataset([trainDS,valDS])
 
-#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
@@ -49,7 +49,7 @@ modelPath = "model/vgg16.pth"
 nnet = torch.nn.DataParallel(initialize_hed(modelPath))
 nnet.cuda()
 
-train = DataLoader(trainDS, shuffle=True)
+train = DataLoader(trainDS, shuffle=True, batch_size=1)
 
 #test = DataLoader(testDS, shuffle=False)
 
@@ -86,13 +86,14 @@ optimizer = optim.SGD(nnet.parameters(), lr=learningRate, momentum=momentum, wei
 
 print("Training started")
 
-epochs = 40
+epochs = 15
 i = 0
-dispInterval = 100
+dispInterval = 500
 lossAcc = 0.0
 epoch_line = []
 loss_line = []
 optimizer.zero_grad()
+
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, data in enumerate(tqdm(train), 0):
@@ -105,17 +106,15 @@ for epoch in range(epochs):
         lossAvg = loss/miniBatchSize
         lossAvg.backward()
         lossAcc += loss.item()
-        if (j+1)% miniBatchSize == 0:
-            optimizer.step()
-            optimizer.zero_grad()
-
+        optimizer.step()
+        optimizer.zero_grad()    
         if (i+1) % dispInterval == 0:
-                    timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-                    lossDisp = lossAcc/dispInterval
-                    epoch_line.append(epoch + j/len(train))
-                    loss_line.append(lossDisp)
-                    print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i+1, lossDisp))
-                    lossAcc = 0.0
+            timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+            lossDisp = lossAcc/dispInterval
+            epoch_line.append(epoch + j/len(train))
+            loss_line.append(lossDisp)
+            print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i+1, lossDisp))
+            lossAcc = 0.0
         i += 1
     # transform to grayscale images
     avg = sum(sideOuts)/6
@@ -127,7 +126,7 @@ for epoch in range(epochs):
     fuse = grayTrans(sideOuts[5])
     avg = grayTrans(avg)
     tar = grayTrans(target)
-
+        
     side1.save('images/sample_1.png')
     side2.save('images/sample_2.png')
     side3.save('images/sample_3.png')
@@ -143,3 +142,5 @@ for epoch in range(epochs):
     plt.xlabel("Iteration")
     plt.ylabel("Loss")
     plt.savefig("images/loss.png")
+
+
