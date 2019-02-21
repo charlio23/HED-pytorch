@@ -46,7 +46,7 @@ print("Initializing network...")
 
 modelPath = "model/vgg16.pth"
 
-nnet = initialize_hed(modelPath)
+nnet = torch.nn.DataParallel(initialize_hed(modelPath))
 nnet.cuda()
 
 train = DataLoader(trainDS, shuffle=True)
