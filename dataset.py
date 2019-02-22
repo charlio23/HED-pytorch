@@ -25,16 +25,9 @@ class BSDS(Dataset):
         inputName = self.listData[0][i]
         targetName = self.listData[1][i]
         # process the images
-        transfTar = transforms.ToTensor()
-        std=[0.229, 0.224, 0.225]
-        mean=[0.485, 0.456, 0.406]
-        transfIm = transforms.Compose([
-                        transforms.ToTensor(),
-                        transforms.Normalize(mean,std)
-        ])
-        inputImage = transfIm(Image.open(self.rootDirImg + inputName).convert('RGB'))
-
-        targetImage = transfTar(Image.open(self.rootDirGt + targetName).convert('L'))
+        transf = transforms.ToTensor()
+        inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+        targetImage = transf(Image.open(self.rootDirGt + targetName).convert('L'))
         return inputImage, targetImage
 
     def preprocess(self):
