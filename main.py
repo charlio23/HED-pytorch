@@ -97,6 +97,7 @@ optimizer.zero_grad()
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, data in enumerate(tqdm(train), 0):
+
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
@@ -106,6 +107,7 @@ for epoch in range(epochs):
         lossAvg = loss/miniBatchSize
         lossAvg.backward()
         lossAcc += loss.item()
+        break
         optimizer.step()
         optimizer.zero_grad()    
         if (i+1) % dispInterval == 0:
@@ -116,6 +118,7 @@ for epoch in range(epochs):
             print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i+1, lossDisp))
             lossAcc = 0.0
         i += 1
+
     # transform to grayscale images
     avg = sum(sideOuts)/6
     side1 = grayTrans(sideOuts[0])
