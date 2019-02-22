@@ -49,7 +49,7 @@ modelPath = "model/vgg16.pth"
 nnet = torch.nn.DataParallel(initialize_hed(modelPath))
 nnet.cuda()
 
-train = DataLoader(trainDS, shuffle=True, batch_size=1)
+train = DataLoader(trainDS, shuffle=True, batch_size=1, num_workers=4)
 
 #test = DataLoader(testDS, shuffle=False)
 
@@ -107,7 +107,6 @@ for epoch in range(epochs):
         lossAvg = loss/miniBatchSize
         lossAvg.backward()
         lossAcc += loss.item()
-        break
         optimizer.step()
         optimizer.zero_grad()    
         if (i+1) % dispInterval == 0:
