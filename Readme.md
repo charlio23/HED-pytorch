@@ -49,6 +49,7 @@ python main.py
 
 - Draw precision-recall curves and monitor performance
 - Try parameter tuning
+- Improve performance and training time
 
 ## References
 
