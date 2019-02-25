@@ -14,6 +14,7 @@ import time
 from itertools import chain
 from tqdm import tqdm
 from torch.optim import lr_scheduler
+from collections import defaultdict
 
 def grayTrans(img):
     img = img.data.cpu().numpy()[0][0]*255.0
@@ -31,11 +32,11 @@ rootDirImgTest = "BSDS500/data/images/test/"
 rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-trainDS = ConcatDataset([trainDS,valDS])
+#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+#trainDS = ConcatDataset([trainDS,valDS])
 
-#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
@@ -80,25 +81,54 @@ def balanced_cross_entropy(input, target):
     loss = binary_cross_entropy(input, target, weight)
     return loss
 
-fuse_params = list(map(id, net.fuse.parameters()))
-conv5_params = list(map(id, net.conv5.parameters()))
-base_params = filter(lambda p: id(p) not in conv5_params+fuse_params,
-net.parameters())
+    # Optimizer settings.
+net_parameters_id = defaultdict(list)
+for name, param in nnet.named_parameters():
+    if name in ['module.conv1.0.weight', 'module.conv1.2.weight',
+                'module.conv2.0.weight', 'module.conv2.1.weight',
+                'module.conv3.1.weight', 'module.conv3.3.weight', 'module.conv3.5.weight',
+                'module.conv4.1.weight', 'module.conv4.3.weight', 'module.conv4.5.weight']:
+        print('{:26} lr:    1 decay:1'.format(name)); net_parameters_id['conv1-4.weight'].append(param)
+    elif name in ['module.conv1.0.bias', 'module.conv1.2.bias',
+                'module.conv2.0.bias', 'module.conv2.1.bias',
+                'module.conv3.1.bias', 'module.conv3.3.bias', 'module.conv3.5.bias',
+                'module.conv4.1.bias', 'module.conv4.3.bias', 'module.conv4.5.bias']:
+        print('{:26} lr:    2 decay:0'.format(name)); net_parameters_id['conv1-4.bias'].append(param)
+    elif name in ['module.conv5.1.weight', 'module.conv5.3.weight', 'module.conv5.5.weight']:
+        print('{:26} lr:  100 decay:1'.format(name)); net_parameters_id['conv5.weight'].append(param)
+    elif name in ['module.conv5.1.bias', 'module.conv5.3.bias', 'module.conv5.5.bias']:
+        print('{:26} lr:  200 decay:0'.format(name)); net_parameters_id['conv5.bias'].append(param)
+    elif name in ['module.sideOut1.weight', 'module.sideOut2.weight',
+                  'module.sideOut3.weight', 'module.sideOut4.weight', 'module.sideOut5.weight']:
+        print('{:26} lr: 0.01 decay:1'.format(name)); net_parameters_id['score_dsn_1-5.weight'].append(param)
+    elif name in ['module.sideOut1.bias', 'module.sideOut2.bias',
+                  'module.sideOut3.bias', 'module.sideOut4.bias', 'module.sideOut5.bias']:
+        print('{:26} lr: 0.02 decay:0'.format(name)); net_parameters_id['score_dsn_1-5.bias'].append(param)
+    elif name in ['module.fuse.weight']:
+        print('{:26} lr:0.001 decay:1'.format(name)); net_parameters_id['score_final.weight'].append(param)
+    elif name in ['module.fuse.bias']:
+        print('{:26} lr:0.002 decay:0'.format(name)); net_parameters_id['score_final.bias'].append(param)
 
-opt = torch.optim.SGD([
-    {'params': base_params, 'lr': learningRate*1, 'weight_decay': weightDecay},
-    {'params': conv5_params, 'lr': learningRate*100, 'weight_decay': weightDecay},
-    {'params': fuse_params, 'lr': learningRate*0.001, 'weight_decay': weightDecay},
+# Create optimizer.
+optimizer = torch.optim.SGD([
+    {'params': net_parameters_id['conv1-4.weight']      , 'lr': learningRate*1    , 'weight_decay': weightDecay},
+    {'params': net_parameters_id['conv1-4.bias']        , 'lr': learningRate*2    , 'weight_decay': 0.},
+    {'params': net_parameters_id['conv5.weight']        , 'lr': learningRate*100  , 'weight_decay': weightDecay},
+    {'params': net_parameters_id['conv5.bias']          , 'lr': learningRate*200  , 'weight_decay': 0.},
+    {'params': net_parameters_id['score_dsn_1-5.weight'], 'lr': learningRate*0.01 , 'weight_decay': weightDecay},
+    {'params': net_parameters_id['score_dsn_1-5.bias']  , 'lr': learningRate*0.02 , 'weight_decay': 0.},
+    {'params': net_parameters_id['score_final.weight']  , 'lr': learningRate*0.001, 'weight_decay': weightDecay},
+    {'params': net_parameters_id['score_final.bias']    , 'lr': learningRate*0.002, 'weight_decay': 0.},
 ], lr=learningRate, momentum=momentum, weight_decay=weightDecay)
 
 # Learning rate scheduler.
-lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e4, gamma=0.1)
+lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e5, gamma=0.1)
 
 print("Training started")
 
 epochs = 15
 i = 0
-dispInterval = 100
+dispInterval = 500
 lossAcc = 0.0
 epoch_line = []
 loss_line = []
@@ -119,7 +149,7 @@ for epoch in range(epochs):
         lossAcc += loss.item()
         optimizer.step()
         optimizer.zero_grad()    
-        if (i) % dispInterval == 0:
+        if (i+1) % dispInterval == 0:
             timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             lossDisp = lossAcc/dispInterval
             epoch_line.append(epoch + j/len(train))
