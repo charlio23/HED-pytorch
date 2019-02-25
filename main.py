@@ -24,19 +24,19 @@ def grayTrans(img):
 
 print("Importing datasets...")
 
-rootDirImgTrain = "BSDS500/data/images/train/"
-rootDirGtTrain = "BSDS500/data/groundTruth/train/"
-rootDirImgVal = "BSDS500/data/images/val/"
-rootDirGtVal = "BSDS500/data/groundTruth/val/"
-rootDirImgTest = "BSDS500/data/images/test/"
-rootDirGtTest = "BSDS500/data/groundTruth/test/"
+rootDirImgTrain = "BSDS500_AUGMENTED/data/images/train/"
+rootDirGtTrain = "BSDS500_AUGMENTED/data/groundTruth/train/"
+rootDirImgVal = "BSDS500_AUGMENTED/data/images/val/"
+rootDirGtVal = "BSDS500_AUGMENTED/data/groundTruth/val/"
+rootDirImgTest = "BSDS500_AUGMENTED/data/images/test/"
+rootDirGtTest = "BSDS500_AUGMENTED/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-#trainDS = ConcatDataset([trainDS,valDS])
+trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+trainDS = ConcatDataset([trainDS,valDS])
 
-trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
@@ -169,16 +169,16 @@ for epoch in range(epochs):
     avg = grayTrans(avg)
     tar = grayTrans(target)
         
-    side1.save('images/sample_1.png')
-    side2.save('images/sample_2.png')
-    side3.save('images/sample_3.png')
-    side4.save('images/sample_4.png')
-    side5.save('images/sample_5.png')
-    fuse.save('images/sample_6.png')
-    avg.save('images/sample_7.png')
-    tar.save('images/sample_T.png')
+    side1.save('images/sample_1_2.png')
+    side2.save('images/sample_2_2.png')
+    side3.save('images/sample_3_2.png')
+    side4.save('images/sample_4_2.png')
+    side5.save('images/sample_5_2.png')
+    fuse.save('images/sample_6_2.png')
+    avg.save('images/sample_7_2.png')
+    tar.save('images/sample_T_2.png')
 
-    torch.save(nnet.state_dict(), 'HED.pth')
+    torch.save(nnet.state_dict(), 'HED2.pth')
 
     plt.plot(epoch_line,loss_line)
     plt.xlabel("Iteration")
