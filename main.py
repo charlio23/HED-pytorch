@@ -13,6 +13,7 @@ from torch.autograd import Variable
 import time
 from itertools import chain
 from tqdm import tqdm
+from torch.optim import lr_scheduler
 
 def grayTrans(img):
     img = img.data.cpu().numpy()[0][0]*255.0
@@ -30,11 +31,11 @@ rootDirImgTest = "BSDS500/data/images/test/"
 rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-#trainDS = ConcatDataset([trainDS,valDS])
+trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+trainDS = ConcatDataset([trainDS,valDS])
 
-trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
@@ -79,16 +80,25 @@ def balanced_cross_entropy(input, target):
     loss = binary_cross_entropy(input, target, weight)
     return loss
 
+fuse_params = list(map(id, net.fuse.parameters()))
+conv5_params = list(map(id, net.conv5.parameters()))
+base_params = filter(lambda p: id(p) not in conv5_params+fuse_params,
+net.parameters())
 
+opt = torch.optim.SGD([
+    {'params': base_params, 'lr': learningRate*1, 'weight_decay': weightDecay},
+    {'params': conv5_params, 'lr': learningRate*100, 'weight_decay': weightDecay},
+    {'params': fuse_params, 'lr': learningRate*0.001, 'weight_decay': weightDecay},
+], lr=learningRate, momentum=momentum, weight_decay=weightDecay)
 
-
-optimizer = optim.SGD(nnet.parameters(), lr=learningRate, momentum=momentum, weight_decay=weightDecay)
+# Learning rate scheduler.
+lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e4, gamma=0.1)
 
 print("Training started")
 
 epochs = 15
 i = 0
-dispInterval = 500
+dispInterval = 100
 lossAcc = 0.0
 epoch_line = []
 loss_line = []
@@ -97,7 +107,7 @@ optimizer.zero_grad()
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, data in enumerate(tqdm(train), 0):
-
+        lr_schd.step()
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
@@ -109,7 +119,7 @@ for epoch in range(epochs):
         lossAcc += loss.item()
         optimizer.step()
         optimizer.zero_grad()    
-        if (i+1) % dispInterval == 0:
+        if (i) % dispInterval == 0:
             timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             lossDisp = lossAcc/dispInterval
             epoch_line.append(epoch + j/len(train))
