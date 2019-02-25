@@ -7,6 +7,10 @@ __pycache__
 .ipynb_checkpoints
 *.ipynb
 im
+*.pt
+*.pth
+*.pytorch
+BSDS500_AUGMENTED
 # Compiled source #
 ###################
 *.com
