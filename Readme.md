@@ -8,14 +8,14 @@ The main objective is to reproduce the algorithm as it is done in the official i
 
 ### Contents
 
-This repository contain two executable files:
+This repository contains two executable files:
 
 - [image_preprocesing.py](https://github.com/charlio23/HED-pytorch/blob/master/image_preprocesing.py): Data preprocessing and augmentation
 - [main.py](https://github.com/charlio23/HED-pytorch/blob/master/main.py): Training
 
 ### Data preprocessing and augmentation
 
-The script reads from the BSDS500 dataset (.mat files) and converts its content to .png files. It generates the ground truth images at it is specified in the official implementation. Later, it performs the data augmentation: flip, rotate and crop the largest rectangle of the images to obtain a factor of 32 augmented data. Finally the images are resized to 400x400.
+The script reads from the BSDS500 dataset and converts its content from .mat to .png files. It generates the ground truth images at it is specified in the official implementation (positive if labeled as edge by 3 or more people). Later, it performs the data augmentation: flip, rotate and crop the largest rectangle of the images to obtain a factor of 32 augmented data. Finally the images are resized to 400x400.
 
 The results are stored by default in a new directory -> BSDS500_AUGMENTED
 
