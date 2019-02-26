@@ -32,11 +32,11 @@ rootDirImgTest = "BSDS500_AUGMENTED/data/images/test/"
 rootDirGtTest = "BSDS500_AUGMENTED/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-trainDS = ConcatDataset([trainDS,valDS])
+#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+#trainDS = ConcatDataset([trainDS,valDS])
 
-#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
@@ -51,7 +51,7 @@ modelPath = "model/vgg16.pth"
 nnet = torch.nn.DataParallel(initialize_hed(modelPath))
 nnet.cuda()
 
-train = DataLoader(trainDS, shuffle=True, batch_size=100, num_workers=4)
+train = DataLoader(trainDS, shuffle=True, batch_size=1, num_workers=4)
 
 #test = DataLoader(testDS, shuffle=False)
 
