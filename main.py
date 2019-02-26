@@ -46,10 +46,10 @@ trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 
 print("Initializing network...")
 
+
 modelPath = "model/vgg16.pth"
 
-nnet = torch.nn.DataParallel(initialize_hed(modelPath))
-nnet.cuda()
+nnet = torch.nn.DataParallel(initialize_hed(modelPath)).cuda()
 
 train = DataLoader(trainDS, shuffle=True, batch_size=1, num_workers=4)
 
@@ -60,7 +60,6 @@ print("Defining hyperparameters...")
 ### HYPER-PARAMETERS
 learningRate = 1e-6
 momentum = 0.9
-miniBatchSize = 10
 lossWeight = 1
 initializationNestedFilters = 0
 initializationFusionWeights = 1/5
@@ -124,7 +123,7 @@ optimizer = torch.optim.SGD([
 ], lr=learningRate, momentum=momentum, weight_decay=weightDecay)
 
 # Learning rate scheduler.
-lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e5, gamma=0.1)
+lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e4, gamma=0.1)
 
 print("Training started")
 
@@ -132,25 +131,28 @@ epochs = 40
 i = 0
 dispInterval = 500
 lossAcc = 0.0
+train_size = 10
 epoch_line = []
 loss_line = []
+nnet.train()
 optimizer.zero_grad()
 
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, data in enumerate(tqdm(train), 0):
-        lr_schd.step()
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts[:-1]])
         loss6 = binary_cross_entropy(sideOuts[-1], target)
         loss += loss6
-        lossAvg = loss/miniBatchSize
+        lossAvg = loss/train_size
         lossAvg.backward()
         lossAcc += loss.item()
-        optimizer.step()
-        optimizer.zero_grad()    
+        if (j+1) % train_size == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+            lr_schd.step()
         if (i+1) % dispInterval == 0:
             timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             lossDisp = lossAcc/dispInterval
