@@ -51,7 +51,7 @@ modelPath = "model/vgg16.pth"
 nnet = torch.nn.DataParallel(initialize_hed(modelPath))
 nnet.cuda()
 
-train = DataLoader(trainDS, shuffle=True, batch_size=1, num_workers=4)
+train = DataLoader(trainDS, shuffle=True, batch_size=100, num_workers=4)
 
 #test = DataLoader(testDS, shuffle=False)
 
@@ -126,7 +126,7 @@ lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e4, gamma=0.1)
 
 print("Training started")
 
-epochs = 15
+epochs = 40
 i = 0
 dispInterval = 500
 lossAcc = 0.0
