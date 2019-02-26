@@ -10,6 +10,7 @@ im
 *.pt
 *.pth
 *.pytorch
+test
 BSDS500_AUGMENTED
 # Compiled source #
 ###################
