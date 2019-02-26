@@ -2,10 +2,10 @@ BSDS500
 HED-BSDS
 images
 model
-HED.pth
 __pycache__
 .ipynb_checkpoints
 *.ipynb
+*.py36pickle
 im
 *.pt
 *.pth

@@ -78,8 +78,10 @@ def balanced_cross_entropy(input, target):
     weight[neg_index] = pos_num*1.0 / sum_num
     weight = weight.cuda()
 
-    loss = binary_cross_entropy(input, target, weight)
-    return loss
+    loss = binary_cross_entropy(input, target, weight, reduction='none')
+    batch = target.shape[0]
+
+    return torch.sum(loss)/batch
 
     # Optimizer settings.
 net_parameters_id = defaultdict(list)
@@ -122,7 +124,7 @@ optimizer = torch.optim.SGD([
 ], lr=learningRate, momentum=momentum, weight_decay=weightDecay)
 
 # Learning rate scheduler.
-lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e4, gamma=0.1)
+lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e5, gamma=0.1)
 
 print("Training started")
 
@@ -181,10 +183,11 @@ for epoch in range(epochs):
     tar.save('images/sample_T.png')
 
     torch.save(nnet.state_dict(), 'HED.pth')
-
+    plt.clf()
     plt.plot(epoch_line,loss_line)
-    plt.xlabel("Iteration")
+    plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.savefig("images/loss.png")
+    plt.clf()
 
 
