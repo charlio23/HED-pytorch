@@ -15,9 +15,9 @@ rootDirGtVal = "BSDS500/data/groundTruth/val/"
 rootDirImgTest = "BSDS500/data/images/test/"
 rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
-trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, processed=True)
-valDS = BSDS(rootDirImgVal, rootDirGtVal, processed=True)
-testDS = BSDS(rootDirImgTest, rootDirGtTest, processed=True)
+trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, processed=False)
+valDS = BSDS(rootDirImgVal, rootDirGtVal, processed=False)
+testDS = BSDS(rootDirImgTest, rootDirGtTest, processed=False)
 
 ############################
 
@@ -37,8 +37,9 @@ def load_images(path):
     image_list = sorted(os.listdir(path))
     image_hash = {}
     for image_name in image_list:
-        im = Image.open(path + image_name)
-        image_hash[image_name] = im
+    	if ".png" in image_name:
+	        im = Image.open(path + image_name)
+	        image_hash[image_name] = im
 
     return image_hash
 

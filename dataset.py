@@ -28,6 +28,7 @@ class BSDS(Dataset):
         transf = transforms.ToTensor()
         inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
         targetImage = transf(Image.open(self.rootDirGt + targetName).convert('L'))
+        targetImage = (targetImage>0.41).float()
         return inputImage, targetImage
 
     def preprocess(self):
@@ -38,11 +39,12 @@ class BSDS(Dataset):
             targetFile = loadmat(self.rootDirGt + targetName)['groundTruth'][0]
             s = (len(targetFile[0][0][0][1]), len(targetFile[0][0][0][1][0]))
             result = np.zeros(s)
+            num = len(targetFile)
             for target in targetFile:
                 element = target[0][0][1]
                 result = np.add(result, element)
-            appl = np.vectorize(lambda x: 1 if x >= 3 else 0)
-            result = appl(result)
+            
+            result = result/num
             # save result as png image
             result = (result*255.0).astype(np.uint8)
             img = Image.fromarray(result, 'L')
