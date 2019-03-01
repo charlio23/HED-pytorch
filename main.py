@@ -32,11 +32,11 @@ rootDirImgTest = "BSDS500_AUGMENTED/data/images/test/"
 rootDirGtTest = "BSDS500_AUGMENTED/data/groundTruth/test/"
 
 preprocessed = False # Set this to False if you want to preprocess the data
-trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
-valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
-trainDS = ConcatDataset([trainDS,valDS])
+#trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, preprocessed)
+#valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
+#trainDS = ConcatDataset([trainDS,valDS])
 
-#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
