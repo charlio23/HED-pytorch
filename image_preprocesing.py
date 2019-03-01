@@ -12,12 +12,9 @@ rootDirImgTrain = "BSDS500/data/images/train/"
 rootDirGtTrain = "BSDS500/data/groundTruth/train/"
 rootDirImgVal = "BSDS500/data/images/val/"
 rootDirGtVal = "BSDS500/data/groundTruth/val/"
-rootDirImgTest = "BSDS500/data/images/test/"
-rootDirGtTest = "BSDS500/data/groundTruth/test/"
 
 trainDS = BSDS(rootDirImgTrain, rootDirGtTrain, processed=False)
 valDS = BSDS(rootDirImgVal, rootDirGtVal, processed=False)
-testDS = BSDS(rootDirImgTest, rootDirGtTest, processed=False)
 
 ############################
 
@@ -25,7 +22,6 @@ testDS = BSDS(rootDirImgTest, rootDirGtTest, processed=False)
 # Uncoment if you want to do this preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()
-#testDS.preprocess()
 
 ###########################
 
@@ -116,16 +112,12 @@ destDirImgTrain = "BSDS500_AUGMENTED/data/images/train/"
 destDirGtTrain = "BSDS500_AUGMENTED/data/groundTruth/train/"
 destDirImgVal = "BSDS500_AUGMENTED/data/images/val/"
 destDirGtVal = "BSDS500_AUGMENTED/data/groundTruth/val/"
-destDirImgTest = "BSDS500_AUGMENTED/data/images/test/"
-destDirGtTest = "BSDS500_AUGMENTED/data/groundTruth/test/"
 
 ## List of directories for source and destination files
 source_dest_files = [(rootDirImgTrain, destDirImgTrain),
                     (rootDirGtTrain, destDirGtTrain),
                     (rootDirImgVal, destDirImgVal),
-                    (rootDirGtVal, destDirGtVal),
-                    (rootDirImgTest, destDirImgTest),
-                    (rootDirGtTest, destDirGtTest)]
+                    (rootDirGtVal, destDirGtVal)]
 
 new_size = (400, 400)
 num_angles = 17

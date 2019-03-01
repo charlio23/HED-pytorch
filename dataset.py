@@ -56,11 +56,22 @@ class BSDS(Dataset):
         self.listData = [sorted(os.listdir(self.rootDirImg)),sorted(os.listdir(self.rootDirGt))]
         self.processed = True
 
-def grayTrans(img):
-    img = img.data.cpu().numpy()[0]*255.0
-    img = (img).astype(np.uint8)
-    img = Image.fromarray(img, 'L')
-    return img
+class BSDS_TEST(Dataset):
+    def __init__(self, rootDirImg):
+        self.rootDirImg = rootDirImg
+        self.listData = sorted(os.listdir(rootDirImg))
+
+    def __len__(self):
+        return len(self.listData)
+                
+    def __getitem__(self, i):
+        # input and target images
+        inputName = self.listData[i]
+        # process the images
+        transf = transforms.ToTensor()
+        inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+        inputName = inputName.split(".jpg")[0] + ".bmp"
+        return inputImage, inputName
 
 class TrainDataset(Dataset):
     def __init__(self, fileNames, rootDir):        

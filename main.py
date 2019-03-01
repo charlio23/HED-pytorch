@@ -37,7 +37,6 @@ valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
 trainDS = ConcatDataset([trainDS,valDS])
 
 #trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
-#testDS = BSDS(rootDirImgTest, rootDirGtTest, preprocessed)
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
@@ -53,7 +52,6 @@ nnet = torch.nn.DataParallel(initialize_hed(modelPath)).cuda()
 
 train = DataLoader(trainDS, shuffle=True, batch_size=2, num_workers=4)
 
-#test = DataLoader(testDS, shuffle=False)
 
 print("Defining hyperparameters...")
 

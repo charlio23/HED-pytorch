@@ -7,6 +7,7 @@ __pycache__
 *.ipynb
 *.py36pickle
 im
+output
 *.pt
 *.pth
 *.pytorch
