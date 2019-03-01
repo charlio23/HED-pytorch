@@ -50,7 +50,7 @@ modelPath = "model/vgg16.pth"
 
 nnet = torch.nn.DataParallel(initialize_hed(modelPath)).cuda()
 
-train = DataLoader(trainDS, shuffle=True, batch_size=2, num_workers=4)
+train = DataLoader(trainDS, shuffle=True, batch_size=1, num_workers=4)
 
 
 print("Defining hyperparameters...")
