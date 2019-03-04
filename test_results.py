@@ -26,15 +26,15 @@ os.makedirs(testOutput, exist_ok=True)
 
 print("Loading trained network...")
 
-networkPath = "HED.pth"
+networkPath = "hed_checkpoint.pt"
 
 nnet = HED().cuda()
 dic = torch.load(networkPath)
-dicli = list(dic.keys())
+dicli = list(dic['net'].keys())
 new = {}
 j = 0
 for k in nnet.state_dict():
-    new[k] = dic[dicli[j]]
+    new[k] = dic['net'][dicli[j]]
     j += 1
 nnet.load_state_dict(new)
 
