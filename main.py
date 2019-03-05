@@ -141,9 +141,7 @@ for epoch in range(epochs):
         image, target = data
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
-        loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts[:-1]])
-        loss6 = binary_cross_entropy(sideOuts[-1], target)
-        loss += loss6
+        loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])
         lossAvg = loss/train_size
         lossAvg.backward()
         lossAcc += loss.item()
@@ -172,17 +170,17 @@ for epoch in range(epochs):
     tar = grayTrans(target)
     
     plt.imshow(np.transpose(image[0].cpu().numpy(), (1, 2, 0)))
-    plt.savefig("images/sample_0.png")
-    side1.save('images/sample_1.png')
-    side2.save('images/sample_2.png')
-    side3.save('images/sample_3.png')
-    side4.save('images/sample_4.png')
-    side5.save('images/sample_5.png')
-    fuse.save('images/sample_6.png')
-    avg.save('images/sample_7.png')
-    tar.save('images/sample_T.png')
+    plt.savefig("images/2sample_0.png")
+    side1.save('images/2sample_1.png')
+    side2.save('images/2sample_2.png')
+    side3.save('images/2sample_3.png')
+    side4.save('images/2sample_4.png')
+    side5.save('images/2sample_5.png')
+    fuse.save('images/2sample_6.png')
+    avg.save('images/2sample_7.png')
+    tar.save('images/2sample_T.png')
 
-    torch.save(nnet.state_dict(), 'HED.pth')
+    torch.save(nnet.state_dict(), 'HED2.pth')
     plt.clf()
     plt.plot(epoch_line,loss_line)
     plt.xlabel("Epoch")

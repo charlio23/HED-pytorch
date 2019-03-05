@@ -29,7 +29,7 @@ class HED(torch.nn.Module):
 
         self.conv1 = torch.nn.Sequential(
             torch.nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3,
-                stride=1, padding=35),
+                stride=1, padding=1),
             torch.nn.ReLU(inplace=False),
             torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3,
                 stride=1, padding=1),
