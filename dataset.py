@@ -9,6 +9,45 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 from torch.autograd import Variable
 import pandas as pd
+import cv2
+from pycocotools.coco import COCO as COCO_
+import skimage.io as io
+from PIL import Image
+import matplotlib.pyplot as plt
+
+def drawEdges(segment, width=1):
+    contours, hierarchy = cv2.findContours(segment, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    edges = cv2.drawContours((segment*0.0).astype(np.uint8), contours, -1, 255, width).get()
+    return edges
+
+def drawSkeleton(segment):
+    return skeletonize(segment)
+
+class COCO(Dataset):
+    def __init__(self, annotationPath, offline=False):
+        self.annotationPath = annotationPath
+        self.coco = COCO_(annotationPath)
+
+    def __len__(self):
+        return len(self.coco.getImgIds())
+                
+    def __getitem__(self, i):
+        # input and target images
+        imgID = self.coco.getImgIds()[i]
+        annIds = self.coco.getAnnIds(imgIds=imgID)
+        image = self.coco.loadImgs(imgID)[0]
+        # process the images
+        transf = transforms.ToTensor()
+        inputImage = transf(io.imread(image['coco_url']))
+        annotations = self.coco.loadAnns(annIds)
+        annList = [self.coco.annToMask(annotation) for annotation in annotations]
+        merge = np.vectorize(lambda x, y: np.uint8(255) if (x > 0.5 or y > 0.5) else np.uint8(0))
+        edges = drawEdges(annList[0])
+        for segment in annList[1:]:
+            new_edges = drawEdges(segment)
+            edges = merge(edges,new_edges)
+        targetImage = (torch.from_numpy(edges)>0.5).unsqueeze_(0).float()
+        return inputImage, targetImage
 
 class BSDS(Dataset):
     def __init__(self, rootDirImg, rootDirGt, processed=True):
@@ -70,7 +109,7 @@ class BSDS_TEST(Dataset):
         # process the images
         transf = transforms.ToTensor()
         inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
-        inputName = inputName.split(".jpg")[0] + ".bmp"
+        inputName = inputName.split(".jpg")[0] + ".png"
         return inputImage, inputName
 
 class TrainDataset(Dataset):
@@ -98,3 +137,8 @@ class TrainDataset(Dataset):
             targetImage = self.targetTransform(targetImage)
             targetImage = (targetImage>0.41).float()
         return inputImage, targetImage
+
+def drawEdges(segment, width=1):
+    contours, hierarchy = cv2.findContours(segment, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    edges = cv2.drawContours((segment*0.0).astype(np.uint8), contours, -1, 255, width).get()
+    return edges

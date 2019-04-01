@@ -17,7 +17,7 @@ def grayTrans(img):
 print("Loading train dataset...")
 
 rootDirImgTest = "BSDS500/data/images/test/"
-testOutput = "output/"
+testOutput = "test/output/"
 
 testDS = BSDS_TEST(rootDirImgTest)
 test = DataLoader(testDS, shuffle=False)
@@ -26,15 +26,15 @@ os.makedirs(testOutput, exist_ok=True)
 
 print("Loading trained network...")
 
-networkPath = "hed_checkpoint.pt"
+networkPath = "HED2.pth"
 
 nnet = HED().cuda()
 dic = torch.load(networkPath)
-dicli = list(dic['net'].keys())
+dicli = list(dic.keys())
 new = {}
 j = 0
 for k in nnet.state_dict():
-    new[k] = dic['net'][dicli[j]]
+    new[k] = dic[dicli[j]]
     j += 1
 nnet.load_state_dict(new)
 
