@@ -37,7 +37,10 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #trainDS = ConcatDataset([trainDS,valDS])
 
 #trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
-trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
+#Online COCO
+#trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
+#Offline COCO
+#trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017",True)
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()

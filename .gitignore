@@ -2,6 +2,8 @@ BSDS500
 HED-BSDS
 images
 model
+annotations_trainval2017
+train2017
 __pycache__
 .ipynb_checkpoints
 *.ipynb

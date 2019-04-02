@@ -24,10 +24,11 @@ def drawSkeleton(segment):
     return skeletonize(segment)
 
 class COCO(Dataset):
-    def __init__(self, annotationPath, offline=False):
+    def __init__(self, annotationPath, rootDirImg, offline=False):
         self.annotationPath = annotationPath
         self.coco = COCO_(annotationPath)
-
+        self.rootDirImg = rootDirImg
+        self.offline = offline
     def __len__(self):
         return len(self.coco.getImgIds())
                 
@@ -38,7 +39,12 @@ class COCO(Dataset):
         image = self.coco.loadImgs(imgID)[0]
         # process the images
         transf = transforms.ToTensor()
-        inputImage = transf(io.imread(image['coco_url']))
+        inputImage = torch.tensor([])
+        if not offline:
+            inputImage = transf(io.imread(image['coco_url']))
+        else:
+            inputName = image["file_name"]
+            inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
         annotations = self.coco.loadAnns(annIds)
         annList = [self.coco.annToMask(annotation) for annotation in annotations]
         merge = np.vectorize(lambda x, y: np.uint8(255) if (x > 0.5 or y > 0.5) else np.uint8(0))
