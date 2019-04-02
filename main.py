@@ -40,7 +40,7 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #Online COCO
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
-#trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017",True)
+trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017/",True)
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()
@@ -142,6 +142,8 @@ for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, data in enumerate(tqdm(train), 0):
         image, target = data
+        if type(image) == type([]):
+            continue
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])

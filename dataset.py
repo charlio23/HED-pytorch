@@ -40,13 +40,18 @@ class COCO(Dataset):
         # process the images
         transf = transforms.ToTensor()
         inputImage = torch.tensor([])
-        if not offline:
+        if not self.offline:
             inputImage = transf(io.imread(image['coco_url']))
         else:
             inputName = image["file_name"]
-            inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+            try:
+                inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+            except:
+                return [], []
         annotations = self.coco.loadAnns(annIds)
         annList = [self.coco.annToMask(annotation) for annotation in annotations]
+        if len(annList) == 0:
+            return [], []
         merge = np.vectorize(lambda x, y: np.uint8(255) if (x > 0.5 or y > 0.5) else np.uint8(0))
         edges = drawEdges(annList[0])
         for segment in annList[1:]:
