@@ -47,7 +47,10 @@ class COCO(Dataset):
             try:
                 inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
             except:
-                return [], []
+                image = io.imread(image['coco_url'])
+                io.imsave(self.rootDirImg + inputName, image)
+                print("Image saved!")
+                inputImage = transf(image)
         annotations = self.coco.loadAnns(annIds)
         annList = [self.coco.annToMask(annotation) for annotation in annotations]
         if len(annList) == 0:
