@@ -30,11 +30,14 @@ class COCO(Dataset):
         self.rootDirImg = rootDirImg
         self.offline = offline
     def __len__(self):
-        return len(self.coco.getImgIds())
+        catIds = self.coco.getCatIds(catNms=['person'])
+        imgID = self.coco.getImgIds(catIds=catIds)
+        return len(len(imgID))
                 
     def __getitem__(self, i):
         # input and target images
-        imgID = self.coco.getImgIds()[i]
+        catIds = self.coco.getCatIds(catNms=['person'])
+        imgID = self.coco.getImgIds(catIds=catIds)[i]
         annIds = self.coco.getAnnIds(imgIds=imgID)
         image = self.coco.loadImgs(imgID)[0]
         # process the images
@@ -44,13 +47,7 @@ class COCO(Dataset):
             inputImage = transf(io.imread(image['coco_url']))
         else:
             inputName = image["file_name"]
-            try:
-                inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
-            except:
-                image = io.imread(image['coco_url'])
-                io.imsave(self.rootDirImg + inputName, image)
-                print("Image saved!")
-                inputImage = transf(image)
+            inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
         annotations = self.coco.loadAnns(annIds)
         annList = [self.coco.annToMask(annotation) for annotation in annotations]
         if len(annList) == 0:

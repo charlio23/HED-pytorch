@@ -142,7 +142,7 @@ for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, data in enumerate(tqdm(train), 0):
         image, target = data
-        if type(image) == type([]):
+        if type(image) == type([]) or image.size(1) == 1:
             continue
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
