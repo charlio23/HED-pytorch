@@ -143,7 +143,7 @@ for epoch in range(epochs):
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])
         lossAvg = loss/train_size
         lossAvg.backward()
-        lossAcc += loss.copy().item()
+        lossAcc += loss.clone().item()
         if j%train_size == 0:
             optimizer.step()
             optimizer.zero_grad()
