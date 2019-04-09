@@ -61,9 +61,6 @@ print("Defining hyperparameters...")
 ### HYPER-PARAMETERS
 learningRate = 1e-6
 momentum = 0.9
-lossWeight = 1
-initializationNestedFilters = 0
-initializationFusionWeights = 1/5
 weightDecay = 0.0002
 ###
 
@@ -76,8 +73,7 @@ def balanced_cross_entropy(input, target):
     sum_num = pos_num + neg_num
     weight[pos_index] = neg_num*1.0 / sum_num
     weight[neg_index] = pos_num*1.0 / sum_num
-    weight = weight.cuda()
-
+    
     loss = binary_cross_entropy(input, target, weight, reduction='none')
     batch = target.shape[0]
 
@@ -129,7 +125,7 @@ lr_schd = lr_scheduler.StepLR(optimizer, step_size=1e4, gamma=0.1)
 print("Training started")
 
 epochs = 40
-i = 0
+i = 1
 dispInterval = 500
 lossAcc = 0.0
 train_size = 10
@@ -140,26 +136,23 @@ optimizer.zero_grad()
 
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
-    for j, data in enumerate(tqdm(train), 0):
-        image, target = data
-        if type(image) == type([]) or image.size(1) == 1:
-            continue
+    for j, (image, target) in enumerate(tqdm(train), 1):
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])
         lossAvg = loss/train_size
         lossAvg.backward()
-        lossAcc += loss.item()
-        if (j+1) % train_size == 0:
+        lossAcc += loss.copy().item()
+        if j%train_size == 0:
             optimizer.step()
             optimizer.zero_grad()
             lr_schd.step()
-        if (i+1) % dispInterval == 0:
+        if i%dispInterval == 0:
             timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             lossDisp = lossAcc/dispInterval
-            epoch_line.append(epoch + j/len(train))
+            epoch_line.append(epoch + (j - 1)/len(train))
             loss_line.append(lossDisp)
-            print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i+1, lossDisp))
+            print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i, lossDisp))
             lossAcc = 0.0
         i += 1
 
