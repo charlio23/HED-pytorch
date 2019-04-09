@@ -40,7 +40,7 @@ trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #Online COCO
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
-trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017/",True)
+#trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017/",True)
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()
