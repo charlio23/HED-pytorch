@@ -64,18 +64,19 @@ momentum = 0.9
 weightDecay = 0.0002
 ###
 
-def balanced_cross_entropy(input, target):            
+def balanced_cross_entropy(input, target):
+    batch, _, width, height = target.size()
     pos_index = (target >=0.5)
     neg_index = (target <0.5)        
     weight = torch.Tensor(input.size()).fill_(0)
+    sum_num = width*height
     pos_num = pos_index.sum().item()
-    neg_num = neg_index.sum().item()
+    neg_num = sum_num - pos_num
     sum_num = pos_num + neg_num
     weight[pos_index] = neg_num*1.0 / sum_num
     weight[neg_index] = pos_num*1.0 / sum_num
-    
+    weight = weight.cuda()
     loss = binary_cross_entropy(input, target, weight, reduction='none')
-    batch = target.shape[0]
 
     return torch.sum(loss)/batch
 
