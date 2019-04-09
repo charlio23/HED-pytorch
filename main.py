@@ -36,7 +36,7 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
 #trainDS = ConcatDataset([trainDS,valDS])
 
-#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #Online COCO
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
