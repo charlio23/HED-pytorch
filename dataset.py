@@ -30,23 +30,28 @@ class COCO(Dataset):
         self.rootDirImg = rootDirImg
         self.offline = offline
     def __len__(self):
-        return len(self.coco.getImgIds())
+        catIds = self.coco.getCatIds(catNms=['person'])
+        imgID = self.coco.getImgIds(catIds=catIds)
+        return len(len(imgID))
                 
     def __getitem__(self, i):
         # input and target images
-        imgID = self.coco.getImgIds()[i]
+        catIds = self.coco.getCatIds(catNms=['person'])
+        imgID = self.coco.getImgIds(catIds=catIds)[i]
         annIds = self.coco.getAnnIds(imgIds=imgID)
         image = self.coco.loadImgs(imgID)[0]
         # process the images
         transf = transforms.ToTensor()
         inputImage = torch.tensor([])
-        if not offline:
+        if not self.offline:
             inputImage = transf(io.imread(image['coco_url']))
         else:
             inputName = image["file_name"]
             inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
         annotations = self.coco.loadAnns(annIds)
         annList = [self.coco.annToMask(annotation) for annotation in annotations]
+        if len(annList) == 0:
+            return [], []
         merge = np.vectorize(lambda x, y: np.uint8(255) if (x > 0.5 or y > 0.5) else np.uint8(0))
         edges = drawEdges(annList[0])
         for segment in annList[1:]:
