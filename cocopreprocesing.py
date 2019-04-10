@@ -35,6 +35,8 @@ imgIds = coco.getImgIds(catIds=catIds)
 os.makedirs(outputDir + category + "/edges/", exist_ok=True)
 os.makedirs(outputDir + category + "/skeletons/", exist_ok=True)
 
+merge = np.vectorize(lambda x, y: np.uint8(255) if (x > 0.5 or y > 0.5) else np.uint8(0))
+
 for imgId in tqdm(imgIds):
     start = time.time()
     image = coco.loadImgs(imgId)[0]
@@ -48,9 +50,9 @@ for imgId in tqdm(imgIds):
     end = time.time()
     print("Mask time: ", end-start)
     start = time.time()
-    merge = np.vectorize(lambda x, y: np.uint8(255) if (x > 0.5 or y > 0.5) else np.uint8(0))
     edges = drawEdges(annList[0])
     skeleton = drawSkeleton(annList[0])
+    print(len(annList))
     for segment in annList[1:]:
         new_edges = drawEdges(segment)
         new_ske = drawSkeleton(segment)
