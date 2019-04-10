@@ -36,11 +36,11 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
 #trainDS = ConcatDataset([trainDS,valDS])
 
-trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+#trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
 #Online COCO
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
-#trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017/",True)
+trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017/",True)
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()
@@ -133,14 +133,13 @@ epoch_line = []
 loss_line = []
 nnet.train()
 optimizer.zero_grad()
-time_data = []
-time_network = []
-time_loss = []
 
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, (image, target) in enumerate(tqdm(train), 1):
         image, target = Variable(image).cuda(), Variable(target).cuda()
+        if image == []:
+            continue
         sideOuts = nnet(image)
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])
         lossAvg = loss/train_size
@@ -172,22 +171,22 @@ for epoch in range(epochs):
     tar = grayTrans(target)
     
     plt.imshow(np.transpose(image[0].cpu().numpy(), (1, 2, 0)))
-    plt.savefig("images/sample_0.png")
-    side1.save('images/sample_1.png')
-    side2.save('images/sample_2.png')
-    side3.save('images/sample_3.png')
-    side4.save('images/sample_4.png')
-    side5.save('images/sample_5.png')
-    fuse.save('images/sample_6.png')
-    avg.save('images/sample_7.png')
-    tar.save('images/sample_T.png')
+    plt.savefig("images-coco/sample_0.png")
+    side1.save('images-coco/sample_1.png')
+    side2.save('images-coco/sample_2.png')
+    side3.save('images-coco/sample_3.png')
+    side4.save('images-coco/sample_4.png')
+    side5.save('images-coco/sample_5.png')
+    fuse.save('images-coco/sample_6.png')
+    avg.save('images-coco/sample_7.png')
+    tar.save('images-coco/sample_T.png')
 
     torch.save(nnet.state_dict(), 'HED-COCO.pth')
     plt.clf()
     plt.plot(epoch_line,loss_line)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.savefig("images/loss.png")
+    plt.savefig("images-coco/loss.png")
     plt.clf()
 
 
