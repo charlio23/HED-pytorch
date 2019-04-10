@@ -64,7 +64,7 @@ momentum = 0.9
 weightDecay = 0.0002
 ###
 
-def weighted_cross_entropy_loss(preds, edges):
+def balanced_cross_entropy(preds, edges):
     """ Calculate sum of weighted cross entropy loss. """
     # Reference:
     #   hed/src/caffe/layers/sigmoid_cross_entropy_loss_layer.cpp
