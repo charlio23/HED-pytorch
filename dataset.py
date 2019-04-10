@@ -32,7 +32,7 @@ class COCO(Dataset):
     def __len__(self):
         catIds = self.coco.getCatIds(catNms=['person'])
         imgID = self.coco.getImgIds(catIds=catIds)
-        return len(len(imgID))
+        return len(imgID)
                 
     def __getitem__(self, i):
         # input and target images
