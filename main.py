@@ -138,7 +138,7 @@ for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, (image, target) in enumerate(tqdm(train), 1):
         image, target = Variable(image).cuda(), Variable(target).cuda()
-        if image == []:
+        if type(image) == type([]):
             continue
         sideOuts = nnet(image)
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])
