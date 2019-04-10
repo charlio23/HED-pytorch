@@ -148,8 +148,3 @@ class TrainDataset(Dataset):
             targetImage = self.targetTransform(targetImage)
             targetImage = (targetImage>0.41).float()
         return inputImage, targetImage
-
-def drawEdges(segment, width=1):
-    contours, hierarchy = cv2.findContours(segment, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    edges = cv2.drawContours((segment*0.0).astype(np.uint8), contours, -1, 255, width).get()
-    return edges
