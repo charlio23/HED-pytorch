@@ -146,7 +146,7 @@ class TrainDataset(Dataset):
         tensorGreen = (inputImage[1:2, :, :] * 255.0) - 116.66876762
         tensorRed = (inputImage[2:3, :, :] * 255.0) - 122.67891434
 
-        inputImage = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 1)
+        inputImage = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 0)
 
         targetImage = Image.open(targetName).convert('L')
         targetImage = self.targetTransform(targetImage)
