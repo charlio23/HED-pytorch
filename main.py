@@ -75,27 +75,10 @@ def balanced_cross_entropy(input, target):
     sum_num = pos_num + neg_num
     weight[pos_index] = neg_num / sum_num
     weight[neg_index] = pos_num / sum_num 
+    print(weight.type())
     loss = binary_cross_entropy(input, target, weight, reduction='none')
 
     return torch.sum(loss)/batch
-
-def balanced_cross_entropy(preds, edges):
-    """ Calculate sum of weighted cross entropy loss. """
-    # Reference:
-    #   hed/src/caffe/layers/sigmoid_cross_entropy_loss_layer.cpp
-    #   https://github.com/s9xie/hed/issues/7
-    mask = (edges > 0.5).float()
-    b, c, h, w = mask.shape
-    num_pos = torch.sum(mask, dim=[1, 2, 3]).float()  # Shape: [b,].
-    num_neg = c * h * w - num_pos                     # Shape: [b,].
-    weight = torch.zeros_like(mask)
-    weight[edges > 0.5]  = num_neg / (num_pos + num_neg)
-    weight[edges <= 0.5] = num_pos / (num_pos + num_neg)
-    # Calculate loss.
-    losses = binary_cross_entropy(preds.float(), edges.float(), weight=weight, reduction='none')
-    loss   = torch.sum(losses) / b
-    return loss
-
 
     # Optimizer settings.
 net_parameters_id = defaultdict(list)
