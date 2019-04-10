@@ -133,23 +133,38 @@ epoch_line = []
 loss_line = []
 nnet.train()
 optimizer.zero_grad()
+time_data = []
+time_network = []
+time_loss = []
 
 for epoch in range(epochs):
     print("Epoch: " + str(epoch + 1))
     for j, (image, target) in enumerate(tqdm(train), 1):
-        image, target = Variable(image).cuda(), Variable(target).cuda()
         if type(image) == type([]):
+            print("Nope")
             continue
+        if j != 1:
+            end = time.time()
+            time_data.append(end - start)
+        start = time.time()
+        image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
+        end = time.time()
+        time_network.append(end - start)
+        start = time.time()
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])
         lossAvg = loss/train_size
         lossAvg.backward()
         lossAcc += loss.clone().item()
+        end = time.time()
+        time_loss.append(end - start)
         if j%train_size == 0:
             optimizer.step()
             optimizer.zero_grad()
             lr_schd.step()
-
+            print("Loss time: ", np.average(time_loss))
+            print("Network time: ", np.average(time_network))
+            print("Data time: ", np.average(time_data))
         if i%dispInterval == 0:
             timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             lossDisp = lossAcc/dispInterval
@@ -158,6 +173,7 @@ for epoch in range(epochs):
             print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i, lossDisp))
             lossAcc = 0.0
         i += 1
+        start = time.time()
 
     # transform to grayscale images
     avg = sum(sideOuts)/6
@@ -171,22 +187,22 @@ for epoch in range(epochs):
     tar = grayTrans(target)
     
     plt.imshow(np.transpose(image[0].cpu().numpy(), (1, 2, 0)))
-    plt.savefig("images-coco/sample_0.png")
-    side1.save('images-coco/sample_1.png')
-    side2.save('images-coco/sample_2.png')
-    side3.save('images-coco/sample_3.png')
-    side4.save('images-coco/sample_4.png')
-    side5.save('images-coco/sample_5.png')
-    fuse.save('images-coco/sample_6.png')
-    avg.save('images-coco/sample_7.png')
-    tar.save('images-coco/sample_T.png')
+    plt.savefig("images/sample_0.png")
+    side1.save('images/sample_1.png')
+    side2.save('images/sample_2.png')
+    side3.save('images/sample_3.png')
+    side4.save('images/sample_4.png')
+    side5.save('images/sample_5.png')
+    fuse.save('images/sample_6.png')
+    avg.save('images/sample_7.png')
+    tar.save('images/sample_T.png')
 
     torch.save(nnet.state_dict(), 'HED-COCO.pth')
     plt.clf()
     plt.plot(epoch_line,loss_line)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.savefig("images-coco/loss.png")
+    plt.savefig("images/loss.png")
     plt.clf()
 
 
