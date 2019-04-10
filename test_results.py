@@ -26,7 +26,7 @@ os.makedirs(testOutput, exist_ok=True)
 
 print("Loading trained network...")
 
-networkPath = "HED2.pth"
+networkPath = "HED.pth"
 
 nnet = HED().cuda()
 dic = torch.load(networkPath)

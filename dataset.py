@@ -126,6 +126,10 @@ class BSDS_TEST(Dataset):
         transf = transforms.ToTensor()
         inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
         inputName = inputName.split(".jpg")[0] + ".png"
+        tensorBlue = (inputImage[0:1, :, :] * 255.0) - 104.00698793
+        tensorGreen = (inputImage[1:2, :, :] * 255.0) - 116.66876762
+        tensorRed = (inputImage[2:3, :, :] * 255.0) - 122.67891434
+        inputImage = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 0)
         return inputImage, inputName
 
 class TrainDataset(Dataset):
