@@ -26,7 +26,7 @@ def initialize_hed(path):
 
 class HED(nn.Module):
     """ HED network. """
-    def init(self):
+    def __init__(self):
         super(HED, self).__init__()
         # Layers.
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=35)
