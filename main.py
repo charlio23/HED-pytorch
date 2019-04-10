@@ -83,31 +83,30 @@ def balanced_cross_entropy(input, target):
     # Optimizer settings.
 net_parameters_id = defaultdict(list)
 for name, param in nnet.named_parameters():
-    if name in ['module.conv1_1.weight', 'module.conv1_2.weight',
-                'module.conv2_1.weight', 'module.conv2_2.weight',
-                'module.conv3_1.weight', 'module.conv3_2.weight', 'module.conv3_3.weight',
-                'module.conv4_1.weight', 'module.conv4_2.weight', 'module.conv4_3.weight']:
+    if name in ['module.conv1.0.weight', 'module.conv1.2.weight',
+                'module.conv2.0.weight', 'module.conv2.1.weight',
+                'module.conv3.1.weight', 'module.conv3.3.weight', 'module.conv3.5.weight',
+                'module.conv4.1.weight', 'module.conv4.3.weight', 'module.conv4.5.weight']:
         print('{:26} lr:    1 decay:1'.format(name)); net_parameters_id['conv1-4.weight'].append(param)
-    elif name in ['module.conv1_1.bias', 'module.conv1_2.bias',
-                  'module.conv2_1.bias', 'module.conv2_2.bias',
-                  'module.conv3_1.bias', 'module.conv3_2.bias', 'module.conv3_3.bias',
-                  'module.conv4_1.bias', 'module.conv4_2.bias', 'module.conv4_3.bias']:
+    elif name in ['module.conv1.0.bias', 'module.conv1.2.bias',
+                'module.conv2.0.bias', 'module.conv2.1.bias',
+                'module.conv3.1.bias', 'module.conv3.3.bias', 'module.conv3.5.bias',
+                'module.conv4.1.bias', 'module.conv4.3.bias', 'module.conv4.5.bias']:
         print('{:26} lr:    2 decay:0'.format(name)); net_parameters_id['conv1-4.bias'].append(param)
-    elif name in ['module.conv5_1.weight', 'module.conv5_2.weight', 'module.conv5_3.weight']:
+    elif name in ['module.conv5.1.weight', 'module.conv5.3.weight', 'module.conv5.5.weight']:
         print('{:26} lr:  100 decay:1'.format(name)); net_parameters_id['conv5.weight'].append(param)
-    elif name in ['module.conv5_1.bias', 'module.conv5_2.bias', 'module.conv5_3.bias'] :
+    elif name in ['module.conv5.1.bias', 'module.conv5.3.bias', 'module.conv5.5.bias']:
         print('{:26} lr:  200 decay:0'.format(name)); net_parameters_id['conv5.bias'].append(param)
-    elif name in ['module.score_dsn1.weight', 'module.score_dsn2.weight',
-                  'module.score_dsn3.weight', 'module.score_dsn4.weight', 'module.score_dsn5.weight']:
+    elif name in ['module.sideOut1.weight', 'module.sideOut2.weight',
+                  'module.sideOut3.weight', 'module.sideOut4.weight', 'module.sideOut5.weight']:
         print('{:26} lr: 0.01 decay:1'.format(name)); net_parameters_id['score_dsn_1-5.weight'].append(param)
-    elif name in ['module.score_dsn1.bias', 'module.score_dsn2.bias',
-                  'module.score_dsn3.bias', 'module.score_dsn4.bias', 'module.score_dsn5.bias']:
+    elif name in ['module.sideOut1.bias', 'module.sideOut2.bias',
+                  'module.sideOut3.bias', 'module.sideOut4.bias', 'module.sideOut5.bias']:
         print('{:26} lr: 0.02 decay:0'.format(name)); net_parameters_id['score_dsn_1-5.bias'].append(param)
-    elif name in ['module.score_final.weight']:
+    elif name in ['module.fuse.weight']:
         print('{:26} lr:0.001 decay:1'.format(name)); net_parameters_id['score_final.weight'].append(param)
-    elif name in ['module.score_final.bias']:
+    elif name in ['module.fuse.bias']:
         print('{:26} lr:0.002 decay:0'.format(name)); net_parameters_id['score_final.bias'].append(param)
-
 
 # Create optimizer.
 optimizer = torch.optim.SGD([

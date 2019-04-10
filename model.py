@@ -1,6 +1,6 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import torch 
+from torch.nn.functional import interpolate
+from torch import sigmoid
 import numpy as np
 
 def weights_init(m):
@@ -24,42 +24,85 @@ def initialize_hed(path):
             j += 1
     return net
 
-class HED(nn.Module):
-    """ HED network. """
+class HED(torch.nn.Module):
     def __init__(self):
         super(HED, self).__init__()
-        # Layers.
-        self.conv1_1 = nn.Conv2d(3, 64, 3, padding=35)
-        self.conv1_2 = nn.Conv2d(64, 64, 3, padding=1)
 
-        self.conv2_1 = nn.Conv2d(64, 128, 3, padding=1)
-        self.conv2_2 = nn.Conv2d(128, 128, 3, padding=1)
+        self.conv1 = torch.nn.Sequential(
+            torch.nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3,
+                stride=1, padding=35),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False)
+        )
 
-        self.conv3_1 = nn.Conv2d(128, 256, 3, padding=1)
-        self.conv3_2 = nn.Conv2d(256, 256, 3, padding=1)
-        self.conv3_3 = nn.Conv2d(256, 256, 3, padding=1)
+        self.conv2 = torch.nn.Sequential(
+            torch.nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True),
+            torch.nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False)
+        )
 
-        self.conv4_1 = nn.Conv2d(256, 512, 3, padding=1)
-        self.conv4_2 = nn.Conv2d(512, 512, 3, padding=1)
-        self.conv4_3 = nn.Conv2d(512, 512, 3, padding=1)
+        self.conv3 = torch.nn.Sequential(
+            torch.nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True),
+            torch.nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False)
+        )
 
-        self.conv5_1 = nn.Conv2d(512, 512, 3, padding=1)
-        self.conv5_2 = nn.Conv2d(512, 512, 3, padding=1)
-        self.conv5_3 = nn.Conv2d(512, 512, 3, padding=1)
+        self.conv4 = torch.nn.Sequential(
+            torch.nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True),
+            torch.nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False)
+        )
 
-        self.relu = nn.ReLU()
-        # Note: ceil_mode – when True, will use ceil instead of floor to compute the output shape.
-        #       The reason to use ceil mode here is that later we need to upsample the feature maps and crop the results
-        #       in order to have the same shape as the original image. If ceil mode is not used, the up-sampled feature
-        #       maps will possibly be smaller than the original images.
-        self.maxpool = nn.MaxPool2d(2, stride=2, ceil_mode=True)
-        
-        self.score_dsn1 = nn.Conv2d(64, 1, 1)  # Out channels: 1.
-        self.score_dsn2 = nn.Conv2d(128, 1, 1)
-        self.score_dsn3 = nn.Conv2d(256, 1, 1)
-        self.score_dsn4 = nn.Conv2d(512, 1, 1)
-        self.score_dsn5 = nn.Conv2d(512, 1, 1)
-        self.score_final = nn.Conv2d(5, 1, 1)
+        self.conv5 = torch.nn.Sequential(
+            torch.nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True),
+            torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False),
+            torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                stride=1, padding=1),
+            torch.nn.ReLU(inplace=False)
+        )
+
+        self.sideOut1 = torch.nn.Conv2d(in_channels=64, out_channels=1,
+            kernel_size=1, stride=1, padding=0)
+
+        self.sideOut2 = torch.nn.Conv2d(in_channels=128, out_channels=1,
+            kernel_size=1, stride=1, padding=0)
+
+        self.sideOut3 = torch.nn.Conv2d(in_channels=256, out_channels=1,
+            kernel_size=1, stride=1, padding=0)
+
+        self.sideOut4 = torch.nn.Conv2d(in_channels=512, out_channels=1,
+            kernel_size=1, stride=1, padding=0)
+
+        self.sideOut5 = torch.nn.Conv2d(in_channels=512, out_channels=1,
+            kernel_size=1, stride=1, padding=0)
+
+        self.fuse = torch.nn.Conv2d(in_channels=5, out_channels=1,
+            kernel_size=1, stride=1, padding=0)
 
         # Fixed bilinear weights.
         self.weight_deconv2 = make_bilinear_weights(4, 1).cuda()
@@ -147,41 +190,28 @@ class HED(nn.Module):
 
         return crop1_margin, crop2_margin, crop3_margin, crop4_margin, crop5_margin
 
-    def forward(self, x):
-        tensorBlue = (x[:, 0:1, :, :] * 255.0) - 104.00698793
-        tensorGreen = (x[:, 1:2, :, :] * 255.0) - 116.66876762
-        tensorRed = (x[:, 2:3, :, :] * 255.0) - 122.67891434
+    def forward(self, image):
 
-        x = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 1)
-        # VGG-16 network.
-        image_h, image_w = x.shape[2], x.shape[3]
-        conv1_1 = self.relu(self.conv1_1(x))
-        conv1_2 = self.relu(self.conv1_2(conv1_1))  # Side output 1.
-        pool1   = self.maxpool(conv1_2)
+        tensorBlue = (image[:, 0:1, :, :] * 255.0) - 104.00698793
+        tensorGreen = (image[:, 1:2, :, :] * 255.0) - 116.66876762
+        tensorRed = (image[:, 2:3, :, :] * 255.0) - 122.67891434
 
-        conv2_1 = self.relu(self.conv2_1(pool1))
-        conv2_2 = self.relu(self.conv2_2(conv2_1))  # Side output 2.
-        pool2   = self.maxpool(conv2_2)
+        image = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 1)
 
-        conv3_1 = self.relu(self.conv3_1(pool2))
-        conv3_2 = self.relu(self.conv3_2(conv3_1))
-        conv3_3 = self.relu(self.conv3_3(conv3_2))  # Side output 3.
-        pool3   = self.maxpool(conv3_3)
+        conv1 = self.conv1(image)
+        conv2 = self.conv2(conv1)
+        conv3 = self.conv3(conv2)
+        conv4 = self.conv4(conv3)
+        conv5 = self.conv5(conv4)
 
-        conv4_1 = self.relu(self.conv4_1(pool3))
-        conv4_2 = self.relu(self.conv4_2(conv4_1))
-        conv4_3 = self.relu(self.conv4_3(conv4_2))  # Side output 4.
-        pool4   = self.maxpool(conv4_3)
+        height = image.size(2)
+        width = image.size(3)
 
-        conv5_1 = self.relu(self.conv5_1(pool4))
-        conv5_2 = self.relu(self.conv5_2(conv5_1))
-        conv5_3 = self.relu(self.conv5_3(conv5_2))  # Side output 5.
-
-        score_dsn1 = self.score_dsn1(conv1_2)
-        score_dsn2 = self.score_dsn2(conv2_2)
-        score_dsn3 = self.score_dsn3(conv3_3)
-        score_dsn4 = self.score_dsn4(conv4_3)
-        score_dsn5 = self.score_dsn5(conv5_3)
+        score_dsn1 = self.sideOut1(conv1)
+        score_dsn2 = self.sideOut2(conv2)
+        score_dsn3 = self.sideOut3(conv3)
+        score_dsn4 = self.sideOut4(conv4)
+        score_dsn5 = self.sideOut5(conv5)
 
         upsample2 = torch.nn.functional.conv_transpose2d(score_dsn2, self.weight_deconv2, stride=2)
         upsample3 = torch.nn.functional.conv_transpose2d(score_dsn3, self.weight_deconv3, stride=4)
@@ -189,24 +219,27 @@ class HED(nn.Module):
         upsample5 = torch.nn.functional.conv_transpose2d(score_dsn5, self.weight_deconv5, stride=16)
 
         # Aligned cropping.
-        crop1 = score_dsn1[:, :, self.crop1_margin:self.crop1_margin+image_h,
-                                 self.crop1_margin:self.crop1_margin+image_w]
-        crop2 = upsample2[:, :, self.crop2_margin:self.crop2_margin+image_h,
-                                self.crop2_margin:self.crop2_margin+image_w]
-        crop3 = upsample3[:, :, self.crop3_margin:self.crop3_margin+image_h,
-                                self.crop3_margin:self.crop3_margin+image_w]
-        crop4 = upsample4[:, :, self.crop4_margin:self.crop4_margin+image_h,
-                                self.crop4_margin:self.crop4_margin+image_w]
-        crop5 = upsample5[:, :, self.crop5_margin:self.crop5_margin+image_h,
-                                self.crop5_margin:self.crop5_margin+image_w]
+        sideOut1 = score_dsn1[:, :, self.crop1_margin:self.crop1_margin+height,
+                                 self.crop1_margin:self.crop1_margin+width]
+        sideOut2 = upsample2[:, :, self.crop2_margin:self.crop2_margin+height,
+                                self.crop2_margin:self.crop2_margin+width]
+        sideOut3 = upsample3[:, :, self.crop3_margin:self.crop3_margin+height,
+                                self.crop3_margin:self.crop3_margin+width]
+        sideOut4 = upsample4[:, :, self.crop4_margin:self.crop4_margin+height,
+                                self.crop4_margin:self.crop4_margin+width]
+        sideOut5 = upsample5[:, :, self.crop5_margin:self.crop5_margin+height,
+                                self.crop5_margin:self.crop5_margin+width]
 
-        # Concatenate according to channels.
-        fuse_cat = torch.cat((crop1, crop2, crop3, crop4, crop5), dim=1)
-        fuse = self.score_final(fuse_cat)                       # Shape: [batch_size, 1, image_h, image_w].
-        results = [crop1, crop2, crop3, crop4, crop5, fuse]
-        results = [torch.sigmoid(r) for r in results]
-        return results
+        fuse = self.fuse(torch.cat((sideOut1, sideOut2, sideOut3, sideOut4, sideOut5), 1))
 
+        sigSideOut1 = sigmoid(sideOut1)
+        sigSideOut2 = sigmoid(sideOut2)
+        sigSideOut3 = sigmoid(sideOut3)
+        sigSideOut4 = sigmoid(sideOut4)
+        sigSideOut5 = sigmoid(sideOut5)
+        fuse = sigmoid(fuse)
+
+        return sigSideOut1, sigSideOut2, sigSideOut3, sigSideOut4, sigSideOut5, fuse 
 
 def make_bilinear_weights(size, num_channels):
     """ Generate bi-linear interpolation weights as up-sampling filters (following FCN paper). """
