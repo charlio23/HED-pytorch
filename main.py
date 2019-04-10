@@ -75,7 +75,6 @@ def balanced_cross_entropy(input, target):
     sum_num = pos_num + neg_num
     weight[pos_index] = neg_num / sum_num
     weight[neg_index] = pos_num / sum_num 
-    print(weight.type())
     loss = binary_cross_entropy(input, target, weight, reduction='none')
 
     return torch.sum(loss)/batch
