@@ -192,12 +192,6 @@ class HED(torch.nn.Module):
 
     def forward(self, image):
 
-        tensorBlue = (image[:, 0:1, :, :] * 255.0) - 104.00698793
-        tensorGreen = (image[:, 1:2, :, :] * 255.0) - 116.66876762
-        tensorRed = (image[:, 2:3, :, :] * 255.0) - 122.67891434
-
-        image = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 1)
-
         conv1 = self.conv1(image)
         conv2 = self.conv2(conv1)
         conv3 = self.conv3(conv2)
