@@ -1,4 +1,5 @@
 from dataset import BSDS, TrainDataset, COCO
+from datasets import BsdsDataset
 from model import initialize_hed
 from torch.utils.data import DataLoader, ConcatDataset
 import torchvision.transforms as transforms
@@ -36,7 +37,7 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #valDS = BSDS(rootDirImgVal, rootDirGtVal, preprocessed)
 #trainDS = ConcatDataset([trainDS,valDS])
 
-trainDS = TrainDataset("HED-BSDS/train_pair.lst","HED-BSDS/")
+trainDS = BsdsDataset()
 #Online COCO
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
