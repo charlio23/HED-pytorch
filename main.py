@@ -82,7 +82,7 @@ def balanced_cross_entropy(input, target):
 
     # Optimizer settings.
 net_parameters_id = defaultdict(list)
-for name, param in net.named_parameters():
+for name, param in nnet.named_parameters():
     if name in ['module.conv1_1.weight', 'module.conv1_2.weight',
                 'module.conv2_1.weight', 'module.conv2_2.weight',
                 'module.conv3_1.weight', 'module.conv3_2.weight', 'module.conv3_3.weight',

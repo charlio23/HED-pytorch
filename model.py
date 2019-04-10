@@ -1,6 +1,6 @@
-import torch 
-from torch.nn.functional import interpolate
-from torch import sigmoid
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 
 def weights_init(m):
@@ -26,7 +26,7 @@ def initialize_hed(path):
 
 class HED(nn.Module):
     """ HED network. """
-    def __init__(self, device):
+    def init(self):
         super(HED, self).__init__()
         # Layers.
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=35)
@@ -62,10 +62,10 @@ class HED(nn.Module):
         self.score_final = nn.Conv2d(5, 1, 1)
 
         # Fixed bilinear weights.
-        self.weight_deconv2 = make_bilinear_weights(4, 1).to(device)
-        self.weight_deconv3 = make_bilinear_weights(8, 1).to(device)
-        self.weight_deconv4 = make_bilinear_weights(16, 1).to(device)
-        self.weight_deconv5 = make_bilinear_weights(32, 1).to(device)
+        self.weight_deconv2 = make_bilinear_weights(4, 1).cuda()
+        self.weight_deconv3 = make_bilinear_weights(8, 1).cuda()
+        self.weight_deconv4 = make_bilinear_weights(16, 1).cuda()
+        self.weight_deconv5 = make_bilinear_weights(32, 1).cuda()
 
         # Prepare for aligned crop.
         self.crop1_margin, self.crop2_margin, self.crop3_margin, self.crop4_margin, self.crop5_margin = \
