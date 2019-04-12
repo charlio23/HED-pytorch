@@ -25,15 +25,15 @@ def drawSkeleton(segment):
 class COCO(Dataset):
     def __init__(self, rootDir, offline=False):
         rootDirImg = rootDir + "images"
-        rootDirGt = rootDirGt + "groundTruth/" + "person/" + "edges"
-        self.listData = [sorted(os.listdir(rootDirImg)),sorted(os.listdir(rootDirGt))]
+        rootDirGt = rootDir + "groundTruth/" + "person/" + "edges"
+        self.listData = sorted(os.listdir(rootDirGt))
     def __len__(self):
-        return len(self.listData[-1])
+        return len(self.listData)
                 
     def __getitem__(self, i):
         # input and target images
-        inputName = self.listData[-1][i]
-        targetName = self.listData[-1][i]
+        inputName = self.listData[i]
+        targetName = self.listData[i]
         # process the images
         transf = transforms.ToTensor()
         inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
