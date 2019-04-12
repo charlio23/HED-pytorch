@@ -24,9 +24,9 @@ def drawSkeleton(segment):
 
 class COCO(Dataset):
     def __init__(self, rootDir, offline=False):
-        rootDirImg = rootDir + "images"
-        rootDirGt = rootDir + "groundTruth/" + "person/" + "edges"
-        self.listData = sorted(os.listdir(rootDirGt))
+        self.rootDirImg = rootDir + "images/"
+        self.rootDirGt = rootDir + "groundTruth/" + "person/" + "edges/"
+        self.listData = sorted(os.listdir(self.rootDirGt))
     def __len__(self):
         return len(self.listData)
                 
