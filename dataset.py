@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from torch.autograd import Variable
 import pandas as pd
 import cv2
-from pycocotools.coco import COCO as COCO_
 import skimage.io as io
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -24,45 +23,26 @@ def drawSkeleton(segment):
     return skeletonize(segment)
 
 class COCO(Dataset):
-    def __init__(self, annotationPath, rootDirImg, offline=False):
-        self.annotationPath = annotationPath
-        self.coco = COCO_(annotationPath)
-        self.rootDirImg = rootDirImg
-        self.offline = offline
+    def __init__(self, rootDir, offline=False):
+        rootDirImg = rootDir + "images"
+        rootDirGt = rootDirGt + "groundTruth/" + "person/" + "edges"
+        self.listData = [sorted(os.listdir(rootDirImg)),sorted(os.listdir(rootDirGt))]
     def __len__(self):
-        catIds = self.coco.getCatIds(catNms=['person'])
-        imgID = self.coco.getImgIds(catIds=catIds)
-        return len(imgID)
+        return len(self.listData[-1])
                 
     def __getitem__(self, i):
         # input and target images
-        catIds = self.coco.getCatIds(catNms=['person'])
-        imgID = self.coco.getImgIds(catIds=catIds)[i]
-        annIds = self.coco.getAnnIds(imgIds=imgID)
-        image = self.coco.loadImgs(imgID)[0]
+        inputName = self.listData[-1][i]
+        targetName = self.listData[-1][i]
         # process the images
         transf = transforms.ToTensor()
-        inputImage = torch.tensor([])
-        if not self.offline:
-            inputImage = transf(io.imread(image['coco_url']))
-        else:
-            inputName = image["file_name"]
-            inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+        inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+        targetImage = transf(Image.open(self.rootDirGt + targetName).convert('L'))
         tensorBlue = (inputImage[0:1, :, :] * 255.0) - 104.00698793
         tensorGreen = (inputImage[1:2, :, :] * 255.0) - 116.66876762
         tensorRed = (inputImage[2:3, :, :] * 255.0) - 122.67891434
-
         inputImage = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 0)
-        annotations = self.coco.loadAnns(annIds)
-        annList = [self.coco.annToMask(annotation) for annotation in annotations]
-        if len(annList) == 0:
-            return [], []
-        merge = np.vectorize(lambda x, y: np.uint8(255) if (x > 0.5 or y > 0.5) else np.uint8(0))
-        edges = drawEdges(annList[0])
-        for segment in annList[1:]:
-            new_edges = drawEdges(segment)
-            edges = merge(edges,new_edges)
-        targetImage = (torch.from_numpy(edges)>0.5).unsqueeze_(0).float()
+
         return inputImage, targetImage
 
 class BSDS(Dataset):

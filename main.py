@@ -40,7 +40,7 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #Online COCO
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
-trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json","train2017/",True)
+trainDS = COCO("train2017/",True)
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()
