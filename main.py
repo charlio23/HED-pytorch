@@ -143,28 +143,17 @@ for epoch in range(epochs):
         if type(image) == type([]):
             print("Nope")
             continue
-        if j != 1:
-            end = time.time()
-            time_data.append(end - start)
-        start = time.time()
+
         image, target = Variable(image).cuda(), Variable(target).cuda()
         sideOuts = nnet(image)
-        end = time.time()
-        time_network.append(end - start)
-        start = time.time()
         loss = sum([balanced_cross_entropy(sideOut, target) for sideOut in sideOuts])
         lossAvg = loss/train_size
         lossAvg.backward()
         lossAcc += loss.clone().item()
-        end = time.time()
-        time_loss.append(end - start)
         if j%train_size == 0:
             optimizer.step()
             optimizer.zero_grad()
             lr_schd.step()
-            print("Loss time: ", np.average(time_loss))
-            print("Network time: ", np.average(time_network))
-            print("Data time: ", np.average(time_data))
         if i%dispInterval == 0:
             timestr = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             lossDisp = lossAcc/dispInterval
@@ -173,7 +162,6 @@ for epoch in range(epochs):
             print("%s epoch: %d iter:%d loss:%.6f"%(timestr, epoch+1, i, lossDisp))
             lossAcc = 0.0
         i += 1
-        start = time.time()
 
     # transform to grayscale images
     avg = sum(sideOuts)/6
