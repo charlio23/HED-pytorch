@@ -141,3 +141,30 @@ class TrainDataset(Dataset):
         targetImage = self.targetTransform(targetImage)
         targetImage = (targetImage>0.41).float()
         return inputImage, targetImage
+
+class SKLARGE(Dataset):
+    def __init__(self, rootDirImg, rootDirGt):
+        self.rootDirImg = rootDirImg
+        self.rootDirGt = rootDirGt
+        self.listData = sorted(os.listdir(rootDirImg))
+
+    def __len__(self):
+        return len(self.listData)
+                
+    def __getitem__(self, i):
+        # input and target images
+        inputName = self.listData[i]
+        targetName = inputName.replace('.jpg','.mat')
+        # process the images
+        transf = transforms.ToTensor()
+        inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+        tensorBlue = (inputImage[0:1, :, :] * 255.0) - 104.00698793
+        tensorGreen = (inputImage[1:2, :, :] * 255.0) - 116.66876762
+        tensorRed = (inputImage[2:3, :, :] * 255.0) - 122.67891434
+
+        inputImage = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 0)
+        # CODE FOR RAW .MAT FILES
+        itemGround = loadmat(self.rootDirGt + targetName)
+        edge, skeleton = itemGround['edge'], itemGround['symmetry']
+        targetImage = torch.from_numpy(edge).unsqueeze_(0).float()
+        return inputImage, targetImage

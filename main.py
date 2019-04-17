@@ -1,4 +1,4 @@
-from dataset import BSDS, TrainDataset, COCO
+from dataset import BSDS, TrainDataset, COCO, SKLARGE
 from model import initialize_hed
 from torch.utils.data import DataLoader, ConcatDataset
 import torchvision.transforms as transforms
@@ -41,6 +41,10 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
 trainDS = COCO("train2017/",True)
+
+#SK-LARGE
+trainDS = SKLARGE("../DeepSkeleton-pytorch/SK-LARGE/images/train/", "../DeepSkeleton-pytorch/SK-LARGE/groundTruth/train/")
+
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
 #valDS.preprocess()
@@ -175,22 +179,22 @@ for epoch in range(epochs):
     tar = grayTrans(target)
     
     plt.imshow(np.transpose(image[0].cpu().numpy(), (1, 2, 0)))
-    plt.savefig("images-coco/sample_0.png")
-    side1.save('images-coco/sample_1.png')
-    side2.save('images-coco/sample_2.png')
-    side3.save('images-coco/sample_3.png')
-    side4.save('images-coco/sample_4.png')
-    side5.save('images-coco/sample_5.png')
-    fuse.save('images-coco/sample_6.png')
-    avg.save('images-coco/sample_7.png')
-    tar.save('images-coco/sample_T.png')
+    plt.savefig("images-sk/sample_0.png")
+    side1.save('images-sk/sample_1.png')
+    side2.save('images-sk/sample_2.png')
+    side3.save('images-sk/sample_3.png')
+    side4.save('images-sk/sample_4.png')
+    side5.save('images-sk/sample_5.png')
+    fuse.save('images-sk/sample_6.png')
+    avg.save('images-sk/sample_7.png')
+    tar.save('images-sk/sample_T.png')
 
-    torch.save(nnet.state_dict(), 'HED-COCO.pth')
+    torch.save(nnet.state_dict(), 'HED-SKLARGE.pth')
     plt.clf()
     plt.plot(epoch_line,loss_line)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.savefig("images/loss.png")
+    plt.savefig("images-sk/loss.png")
     plt.clf()
 
 
