@@ -43,7 +43,7 @@ preprocessed = False # Set this to False if you want to preprocess the data
 trainDS = COCO("train2017/",True)
 
 #SK-LARGE
-trainDS = SKLARGE("../DeepSkeleton-pytorch/SK-LARGE/images/train/", "../DeepSkeleton-pytorch/SK-LARGE/groundTruth/train/")
+trainDS = SKLARGE("../DeepSkeleton-pytorch/SK-LARGE/aug_data/train_pair.lst", "../DeepSkeleton-pytorch/SK-LARGE/")
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
