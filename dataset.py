@@ -155,7 +155,7 @@ class SKLARGE(Dataset):
     def __getitem__(self, idx):
         # input and target images
         inputName = os.path.join(self.rootDir, self.frame.iloc[idx, 0])
-        targetName = os.path.join(self.rootDir, self.frame.iloc[idx, 1]).replace("gt_scale", "ed_scale").replace(".png",".jpg")
+        targetName = os.path.join(self.rootDir, self.frame.iloc[idx, 1]).replace("gt_scale", "ed_scale")
         # process the images
         inputImage = Image.open(inputName).convert('RGB')
         inputImage = self.transform(inputImage)

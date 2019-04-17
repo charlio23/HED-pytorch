@@ -10,6 +10,7 @@ __pycache__
 *.py36pickle
 im
 output
+images*
 *.pt
 *.pth
 *.pytorch
