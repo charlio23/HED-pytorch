@@ -15,6 +15,7 @@ from itertools import chain
 from tqdm import tqdm
 from torch.optim import lr_scheduler
 from collections import defaultdict
+import os
 
 def grayTrans(img):
     img = img.data.cpu().numpy()[0][0]*255.0
@@ -22,6 +23,9 @@ def grayTrans(img):
     img = Image.fromarray(img, 'L')
     return img
 
+image_dir = "images-coco"
+os.makedirs(image_dir, exist_ok=True)
+model_save_name = "HED-COCO.pth"
 print("Importing datasets...")
 
 rootDirImgTrain = "BSDS500_AUGMENTED/data/images/train/"
@@ -40,10 +44,10 @@ preprocessed = False # Set this to False if you want to preprocess the data
 #Online COCO
 #trainDS = COCO("./annotations_trainval2017/annotations/instances_train2017.json")
 #Offline COCO
-trainDS = COCO("train2017/",True)
+trainDS = COCO("../train2017/",True)
 
 #SK-LARGE
-trainDS = SKLARGE("../DeepSkeleton-pytorch/SK-LARGE/aug_data/train_pair.lst", "../DeepSkeleton-pytorch/SK-LARGE/")
+#trainDS = SKLARGE("../DeepSkeleton-pytorch/SK-LARGE/aug_data/train_pair.lst", "../DeepSkeleton-pytorch/SK-LARGE/")
 
 # Uncoment if you want to do preprocessing (.mat -> .png)
 #trainDS.preprocess()
@@ -179,22 +183,22 @@ for epoch in range(epochs):
     tar = grayTrans(target)
     
     plt.imshow(np.transpose(image[0].cpu().numpy(), (1, 2, 0)))
-    plt.savefig("images-sk/sample_0.png")
-    side1.save('images-sk/sample_1.png')
-    side2.save('images-sk/sample_2.png')
-    side3.save('images-sk/sample_3.png')
-    side4.save('images-sk/sample_4.png')
-    side5.save('images-sk/sample_5.png')
-    fuse.save('images-sk/sample_6.png')
-    avg.save('images-sk/sample_7.png')
-    tar.save('images-sk/sample_T.png')
+    plt.savefig(image_dir + '/sample_0.png')
+    side1.save(image_dir + '/sample_1.png')
+    side2.save(image_dir + '/sample_2.png')
+    side3.save(image_dir + '/sample_3.png')
+    side4.save(image_dir + '/sample_4.png')
+    side5.save(image_dir + '/sample_5.png')
+    fuse.save(image_dir + '/sample_6.png')
+    avg.save(image_dir + '/sample_7.png')
+    tar.save(image_dir + '/sample_T.png')
 
-    torch.save(nnet.state_dict(), 'HED-SKLARGE.pth')
+    torch.save(nnet.state_dict(), model_save_name)
     plt.clf()
     plt.plot(epoch_line,loss_line)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.savefig("images-sk/loss.png")
+    plt.savefig(image_dir + '/loss.png')
     plt.clf()
 
 

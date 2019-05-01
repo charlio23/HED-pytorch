@@ -25,7 +25,7 @@ def drawSkeleton(segment):
 class COCO(Dataset):
     def __init__(self, rootDir, offline=False):
         self.rootDirImg = rootDir + "images/"
-        self.rootDirGt = rootDir + "groundTruth/" + "person/" + "edges/"
+        self.rootDirGt = rootDir + "groundTruth/" + "edges/"
         self.listData = sorted(os.listdir(self.rootDirGt))
     def __len__(self):
         return len(self.listData)
@@ -169,3 +169,28 @@ class SKLARGE(Dataset):
         targetImage = Image.open(targetName).convert('L')
         targetImage = self.targetTransform(targetImage)
         return inputImage, targetImage
+
+class SKLARGE_TEST(Dataset):
+    def __init__(self, rootDirImg):
+        self.rootDirImg = rootDirImg
+        self.listData = sorted(os.listdir(rootDirImg))
+
+    def __len__(self):
+        return len(self.listData)
+                
+    def __getitem__(self, i):
+        # input and target images
+        inputName = self.listData[i]
+        # process the images
+        transf = transforms.ToTensor()
+        inputImage = transf(Image.open(self.rootDirImg + inputName).convert('RGB'))
+
+        tensorBlue = (inputImage[0:1, :, :] * 255.0) - 104.00698793
+        tensorGreen = (inputImage[1:2, :, :] * 255.0) - 116.66876762
+        tensorRed = (inputImage[2:3, :, :] * 255.0) - 122.67891434
+
+        inputImage = torch.cat([ tensorBlue, tensorGreen, tensorRed ], 0)
+
+
+        inputName = inputName.split(".jpg")[0] + ".png"
+        return inputImage, inputName

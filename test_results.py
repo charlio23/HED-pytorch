@@ -17,7 +17,7 @@ def grayTrans(img):
 print("Loading train dataset...")
 
 rootDirImgTest = "BSDS500/data/images/test/"
-testOutput = "test/output/"
+testOutput = "test/output-bsds/"
 
 testDS = BSDS_TEST(rootDirImgTest)
 test = DataLoader(testDS, shuffle=False)
@@ -42,7 +42,7 @@ print("Generating test results...")
 
 for j, data in enumerate(tqdm(test), 0):
     image, imgName = data
-    image = Variable(image).cuda()
+    image = Variable(image, requires_grad=False).cuda()
     sideOuts = nnet(image)
     fuse = grayTrans(sideOuts[-1])
     fuse.save(testOutput + imgName[0])
