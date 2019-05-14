@@ -35,7 +35,7 @@ outputDir = "../train2017/groundTruth/"
 
 coco = COCO(annotationPath)
 
-category = ""
+category = "person"
 catIds = coco.getCatIds(catNms=[category])
 imgIds = coco.getImgIds(catIds=catIds)
 
@@ -46,7 +46,7 @@ for imgId in tqdm(imgIds):
     start = time.time()
     image = coco.loadImgs(imgId)[0]
     imageName = image["file_name"].replace('.jpg','.png')
-    annIds = coco.getAnnIds(imgIds=imgId)
+    annIds = coco.getAnnIds(imgIds=imgId, catIds=catIds)
     annotations = coco.loadAnns(annIds)
     end = time.time()
     print("Load time: ", end-start)
