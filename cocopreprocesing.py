@@ -7,6 +7,7 @@ import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
 import time
+from scipy.ndimage.morphology import distance_transform_edt as bwdist
 
 def grayTrans(img):
     img = img*255.0
@@ -20,49 +21,56 @@ def drawEdges(segment, width=1):
     edges = cv2.drawContours((segment*0.0).astype(float), contours, -1, 1.0, width).get()
     return edges
 
-def drawSkeleton(segment):
-    return skeletonize(segment)
+def drawSkeleton(segment, edge):
+    skeleton = skeletonize(segment)
+    dist = 2.0*bwdist(1.0 - edge)
+    make_scale = np.vectorize(lambda x, y: 0 if y < 0.5 else x)
+
+    scale = make_scale(dist, skeleton).astype(np.uint8)
+    return scale
 
 annotationPath = "./annotations_trainval2017/annotations/instances_train2017.json"
 
-outputDir = "train2017/groundTruth/"
+outputDir = "../train2017/groundTruth/"
 
 coco = COCO(annotationPath)
 
-category = "person"
+category = ""
 catIds = coco.getCatIds(catNms=[category])
 imgIds = coco.getImgIds(catIds=catIds)
 
 os.makedirs(outputDir + category + "/edges/", exist_ok=True)
 os.makedirs(outputDir + category + "/skeletons/", exist_ok=True)
 
-merge = np.vectorize(lambda x, y: 1.0 if (x > 0.5 or y > 0.5) else 0.0)
-
 for imgId in tqdm(imgIds):
     start = time.time()
     image = coco.loadImgs(imgId)[0]
-    imageName = image["file_name"]
-    annIds = coco.getAnnIds(imgIds=imgId, catIds=catIds)
+    imageName = image["file_name"].replace('.jpg','.png')
+    annIds = coco.getAnnIds(imgIds=imgId)
     annotations = coco.loadAnns(annIds)
     end = time.time()
     print("Load time: ", end-start)
     start = time.time()
     annList = [coco.annToMask(annotation) for annotation in annotations]
+    if len(annList) == 0:
+        continue
     end = time.time()
     print("Mask time: ", end-start)
     start = time.time()
-    #edges = drawEdges(np.copy(annList[0]))
-    skeleton = drawSkeleton(np.copy(annList[0]))
+    edges = drawEdges(np.copy(annList[0]))
+    skeleton = drawSkeleton(np.copy(annList[0]), edges)
     print(len(annList))
     for segment in annList[1:]:
-        #new_edges = drawEdges(np.copy(segment))
-        new_ske = drawSkeleton(np.copy(segment))
-        #edges = merge(edges,new_edges)
-        skeleton = merge(skeleton,new_ske)
+        new_edges = drawEdges(np.copy(segment))
+        new_ske = drawSkeleton(np.copy(segment), new_edges)
+        edges = np.maximum(edges,new_edges)
+        skeleton = np.maximum(skeleton,new_ske)
     end = time.time()
     print("Edge/Ske time: ", end-start)
     start = time.time()
-    #grayTrans(edges).save(outputDir + category + "/edges/" + imageName)
-    grayTrans(skeleton).save(outputDir + category + "/skeletons/" + imageName)
+    ed_img = grayTrans(edges)
+    ske_img = Image.fromarray(skeleton, 'L')
+    ed_img.save(outputDir + category + "/edges/" + imageName)
+    ske_img.save(outputDir + category + "/skeletons/" + imageName)
     end = time.time()
     print("Saving time: ", end-start)
