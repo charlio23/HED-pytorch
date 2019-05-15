@@ -18,7 +18,6 @@ rootDirImg = rootDir + "images/"
 for imgId in tqdm(imgIds):
     image = coco.loadImgs(imgId)[0]
     imageName = image["file_name"]
-    print(imageName)
     if not os.path.isfile(rootDirImg + imageName):
         print(imageName, "not found, downloading...")
         io.imsave(rootDirImg + imageName, io.imread(image['coco_url']))
