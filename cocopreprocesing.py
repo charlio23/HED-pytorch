@@ -35,7 +35,7 @@ outputDir = "../train2017/groundTruth/"
 
 coco = COCO(annotationPath)
 
-category = "person"
+category = ""
 catIds = coco.getCatIds(catNms=[category])
 imgIds = coco.getImgIds(catIds=catIds)
 
@@ -43,6 +43,7 @@ os.makedirs(outputDir + category + "/edges/", exist_ok=True)
 os.makedirs(outputDir + category + "/skeletons/", exist_ok=True)
 
 for imgId in tqdm(imgIds):
+    exit()
     start = time.time()
     image = coco.loadImgs(imgId)[0]
     imageName = image["file_name"].replace('.jpg','.png')
