@@ -13,16 +13,27 @@ def weights_init(m):
         if m.bias is not None:
             torch.nn.init.constant_(m.bias.data,0)
 
-def initialize_hed(path):
+def initialize_hed(path, continue_train, path_HED=None):
     net = HED()
-    vgg16_items = list(torch.load(path).items())
-    net.apply(weights_init)
-    j = 0
-    for k, v in net.state_dict().items():
-        if k.find("conv") != -1:
-            net.state_dict()[k].copy_(vgg16_items[j][1])
+    if continue_train:
+        dic = torch.load(path_HED)
+        dicli = list(dic.keys())
+        new = {}
+        j = 0
+        for k in net.state_dict():
+            new[k] = dic[dicli[j]]
             j += 1
-    return net
+        net.load_state_dict(new)
+        return net
+    else:
+        vgg16_items = list(torch.load(path).items())
+        net.apply(weights_init)
+        j = 0
+        for k, v in net.state_dict().items():
+            if k.find("conv") != -1:
+                net.state_dict()[k].copy_(vgg16_items[j][1])
+                j += 1
+        return net
 
 class HED(torch.nn.Module):
     def __init__(self):
