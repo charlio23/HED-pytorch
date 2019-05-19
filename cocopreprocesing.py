@@ -18,7 +18,7 @@ def grayTrans(img):
 
 def drawEdges(segment, width=1):
     contours, hierarchy = cv2.findContours(segment, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    edges = cv2.drawContours((segment*0.0).astype(float), contours, -1, 1.0, width).get()
+    edges = cv2.drawContours((segment*0.0).astype(float), contours, -1, 1.0, width)
     return edges
 
 def drawSkeleton(segment, edge):
@@ -29,30 +29,32 @@ def drawSkeleton(segment, edge):
     scale = make_scale(dist, skeleton).astype(np.uint8)
     return scale
 
-annotationPath = "./annotations_trainval2017/annotations/instances_train2017.json"
+annotationPath = "./annotations_trainval2017/annotations/instances_val2017.json"
 
-outputDir = "../train2017/groundTruth/"
+outputDir = "../val2017/groundTruth/"
 
 coco = COCO(annotationPath)
 
-category = ""
+category = "person"
 catIds = coco.getCatIds(catNms=[category])
 imgIds = coco.getImgIds(catIds=catIds)
 
 os.makedirs(outputDir + category + "/edges/", exist_ok=True)
 os.makedirs(outputDir + category + "/skeletons/", exist_ok=True)
 
+size = (400, 400)
+
 for imgId in tqdm(imgIds):
-    exit()
     start = time.time()
     image = coco.loadImgs(imgId)[0]
     imageName = image["file_name"].replace('.jpg','.png')
-    annIds = coco.getAnnIds(imgIds=imgId, catIds=catIds)
+    annIds = coco.getAnnIds(imgIds=imgId, catIds=catIds, iscrowd=False)
     annotations = coco.loadAnns(annIds)
     end = time.time()
     print("Load time: ", end-start)
     start = time.time()
-    annList = [coco.annToMask(annotation) for annotation in annotations]
+
+    annList = [np.array(Image.fromarray(coco.annToMask(annotation),'L').resize(size, Image.ANTIALIAS)) for annotation in annotations]
     if len(annList) == 0:
         continue
     end = time.time()
