@@ -15,9 +15,12 @@ catIds = coco.getCatIds(catNms=[category])
 imgIds = coco.getImgIds(catIds=catIds)
 rootDirImg = rootDir + "images/"
 
+size = (400,400)
+
 for imgId in tqdm(imgIds):
     image = coco.loadImgs(imgId)[0]
     imageName = image["file_name"]
     if not os.path.isfile(rootDirImg + imageName):
         print(imageName, "not found, downloading...")
         io.imsave(rootDirImg + imageName, io.imread(image['coco_url']))
+    Image.open(rootDirImg + imageName,'RGB').resize(size, Image.ANTIALIAS).save(rootDirImg + imageName)
