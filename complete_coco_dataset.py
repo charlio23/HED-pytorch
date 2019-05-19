@@ -5,8 +5,8 @@ import numpy as np
 import skimage.io as io
 from PIL import Image
 
-rootDir = "../train2017/"
-annotationPath = "./annotations_trainval2017/annotations/instances_train2017.json"
+rootDir = "../val2017/"
+annotationPath = "./annotations_trainval2017/annotations/instances_val2017.json"
 
 coco = COCO(annotationPath)
 
@@ -23,4 +23,4 @@ for imgId in tqdm(imgIds):
     if not os.path.isfile(rootDirImg + imageName):
         print(imageName, "not found, downloading...")
         io.imsave(rootDirImg + imageName, io.imread(image['coco_url']))
-    Image.open(rootDirImg + imageName,'RGB').resize(size, Image.ANTIALIAS).save(rootDirImg + imageName)
+    Image.open(rootDirImg + imageName).resize(size, Image.ANTIALIAS).save(rootDirImg + imageName)
